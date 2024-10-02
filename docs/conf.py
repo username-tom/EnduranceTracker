@@ -1,5 +1,5 @@
 SAMPLE_SPREADSHEET_ID = "1eT516P2BHNUItpuoz8_aylJNPMPgpFOp2u7DZhhgICo"
-SAMPLE_RANGE_NAME = "Template!A1:Z200"
+SAMPLE_RANGE_NAME = "!A1:Z200"
 
 INDEX = {
     "INDEX_EVENT_NAME": (0, 1),
@@ -27,7 +27,7 @@ INDEX = {
     "INDEX_DRIVER_7": (0, 23),
     "INDEX_DRIVER_8": (0, 24),
 }
-NAVIGATOR_BG = "#f7d6ff"
+STATUS_BG = "#f7d6ff"
 CONTENT_BG = "#fff9d6"
 
 import configparser as cp
@@ -47,3 +47,4 @@ def set_config(section, key, value):
         config.write(configfile)
 
 GEOMETRY = get_config('general', 'geometry')
+STATUS_TIMES = get_config('settings', 'times')

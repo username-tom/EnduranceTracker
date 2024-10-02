@@ -1,4 +1,5 @@
 import helpers
+from tkinter import messagebox
 
 
 settings = {}
@@ -12,6 +13,10 @@ def add_driver():
         return
     
     if variables['add_driver'].get() in variables['drivers_raw']:
+        return
+    
+    if len(variables['drivers_raw']) == 8:
+        messagebox.showerror("Driver not added!", "Maximum number of drivers reached")
         return
     
     variables['drivers_raw'].append(variables['add_driver'].get())
