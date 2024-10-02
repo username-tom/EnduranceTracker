@@ -8,14 +8,17 @@ os.chdir(OWD)
 from docs.conf import *
 
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, simpledialog, messagebox
 from threading import Thread
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import pytz
 
 
 root = Tk()
+settings = {}
+variables = {}
+elements = {}
 
 from helpers import *
 from core import *
@@ -68,9 +71,10 @@ def loading():
     load_main_content()
 
     root.update()
-    start_status()
 
     login()
+    update_sheets_list()
+    start_status()
 
 
 def load_menu():
@@ -81,6 +85,9 @@ def load_menu():
     menu_app = Menu(elements['main_menu'])
     elements['main_menu'].add_cascade(label="App", menu=menu_app)
     elements['menu_app'] = menu_app
+    elements['menu_app'].add_command(label="Change Spreadsheet", command=change_spreadsheet)
+    elements['menu_app'].add_command(label="Upload", command=lambda: update_values(
+        elements['listbox_events'].curselection()[0], data_frame))
     elements['menu_app'].add_command(label="Exit", command=on_closing)
 
 def load_status():
@@ -126,6 +133,11 @@ def load_main_content():
     main_notebook.grid_columnconfigure(0, weight=1)
     main_notebook.grid_rowconfigure(0, weight=1)
 
+    tab_home = Frame(main_notebook, bg=CONTENT_BG)
+    main_notebook.add(tab_home, text="Home")
+    elements['tab_home'] = tab_home
+    load_tab_home()
+
     tab_general = Frame(main_notebook, bg=CONTENT_BG)
     main_notebook.add(tab_general, text="General")
     elements['tab_general'] = tab_general
@@ -141,12 +153,40 @@ def load_main_content():
     elements['tab_race'] = tab_race
     load_tab_race()
 
+def load_tab_home():
+    global root, settings, variables, elements
+
+    tab_home = elements['tab_home']
+    tab_home.grid_columnconfigure(0, weight=3)
+    tab_home.grid_columnconfigure(1, weight=1)
+
+    temp_label = Label(tab_home, text='Events', bg=CONTENT_BG, font=("Helvetica", 16, 'bold'))
+    temp_label.grid(row=0, column=0, sticky="nsew", pady='30 5')
+    elements['label_home_events'] = temp_label
+
+    variables['all_events_raw'] = []
+    variables['all_events'] = StringVar(value=variables['all_events_raw'])
+    temp_listbox = Listbox(tab_home, 
+                           height=12, 
+                           listvariable=variables['all_events'],
+                           selectmode=SINGLE)
+    temp_listbox.grid(row=1, column=0, sticky="nsew", padx=10, rowspan=12)
+    elements['listbox_events'] = temp_listbox
+    temp_listbox.bind('<<ListboxSelect>>', change_sheet)
+
+    temp_button = Button(tab_home, text="Add Event", command=add_event_popup)
+    temp_button.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
+    elements['add_event_button'] = temp_button
+
+
+
+
 def load_tab_general():
     global root, settings, variables, elements
 
     tab_general = elements['tab_general']
-    tab_general.grid_columnconfigure(0, weight=1)
-    tab_general.grid_columnconfigure((1, 2), weight=2)
+    tab_general.grid_columnconfigure((0, 1), weight=1)
+    tab_general.grid_columnconfigure((2), weight=2)
     for i in range(16):
         tab_general.grid_rowconfigure(i, weight=1)
 
@@ -299,6 +339,7 @@ def load_tab_general():
     elements['label_drivers'] = temp_label
 
     variables['drivers_raw'] = []
+    variables['drivers_time_slots'] = {}
     variables['drivers'] = StringVar(value=variables['drivers_raw'])
     temp_listbox = Listbox(tab_general, 
                            height=8, 
@@ -344,6 +385,21 @@ def load_tab_plan():
     actual_frame.grid(row=3, column=0, sticky="nsew")
     elements['plan_frame_actual'] = actual_frame
 
+def init_time_scheduler():
+    global root, settings, variables, elements, data_frame
+
+    if 'plan_content' in elements:
+        elements['plan_content'].__del__()
+    if 'actual_content' in elements:
+        elements['actual_content'].__del__()
+    root.update()
+
+    plan_content = TimeScheduler(root, settings, variables, elements, target='plan')
+    elements['plan_content'] = plan_content
+
+    actual_content = TimeScheduler(root, settings, variables, elements, target='actual')
+    elements['actual_content'] = actual_content
+
 def load_tab_race():
     global root, settings, variables, elements
 
@@ -359,7 +415,7 @@ def start_status():
 def update_status():
     global root, settings, variables, elements
 
-    root.update()
+    # root.update()
     while settings['status_state']:
 
         variables['time_gmt'].set(datetime.now(pytz.timezone('GMT')).strftime('%H:%M:%S'))
@@ -368,6 +424,43 @@ def update_status():
         sleep(1)
 
 
+def add_driver():
+    global settings, variables, elements
+
+    if variables['add_driver'].get() == '':
+        return
+    
+    if variables['add_driver'].get() in variables['drivers_raw']:
+        return
+    
+    if len(variables['drivers_raw']) == 8:
+        messagebox.showerror("Driver not added!", "Maximum number of drivers reached")
+        return
+    
+    variables['drivers_raw'].append(variables['add_driver'].get())
+    variables['drivers'].set(variables['drivers_raw'])
+    variables['add_driver'].set('')
+
+    if variables['add_driver'].get() not in variables['drivers_time_slots']:
+        variables['drivers_time_slots'][variables['add_driver'].get()] = []
+
+    #TODO: update data frame
+
+def remove_driver():
+    global settings, variables, elements
+
+    listbox_drivers = elements['listbox_drivers']
+    if len(listbox_drivers.curselection()) == 0:
+        return
+    
+    to_delete = []
+    for i in listbox_drivers.curselection():
+        to_delete.append(variables['drivers_raw'][i])
+    for i in to_delete:
+        variables['drivers_raw'].remove(i)
+    variables['drivers'].set(variables['drivers_raw'])
+
+    #TODO: update data frame
 
 def on_closing():
     global root, settings, variables, elements
@@ -377,6 +470,95 @@ def on_closing():
     set_config('general', 'geometry', root.geometry())
     sleep(1)
     root.destroy()
+
+def change_spreadsheet():
+    global SAMPLE_SPREADSHEET_ID, root, settings, variables, elements
+
+    id = simpledialog.askstring("Attention", "Enter new spreadsheet ID")
+
+    SAMPLE_SPREADSHEET_ID = id
+    update_sheets_list()
+
+def update_sheets_list(index=0):
+    variables['all_events_raw'] = get_sheets()
+    variables['all_events'].set(variables['all_events_raw'])
+    elements['listbox_events'].update()
+    elements['listbox_events'].selection_set(index)
+    change_sheet()
+
+def change_sheet(event=None):
+    global root, settings, variables, elements, data_frame
+
+    event_list = elements['listbox_events']
+    selected = event_list.curselection()
+    if len(selected) == 0:
+        return
+    
+    event = event_list.get(selected[0])
+    get_values(event)
+    update_variables_from_data_frame()
+    init_time_scheduler()
+
+def add_event_popup():
+    global root, settings, variables, elements
+
+    name = simpledialog.askstring("Attention", "Enter new event name")
+    if name is None:
+        return
+    
+    add_event(name)
+    original_sheet_len = len(variables['all_events_raw'])
+    update_sheets_list(original_sheet_len)
+
+def update_variables_from_data_frame():
+    global root, settings, variables, elements, data_frame
+
+    variables['event'].set(get_data_frame_value(index='INDEX_EVENT_NAME'))
+    variables['event_time_est'].set(get_data_frame_value(index='INDEX_EVENT_TIME_EST'))
+    try:
+        est = datetime.strptime(variables['event_time_est'].get(), '%m-%d-%Y %H:%M:%S')
+    except ValueError:
+        est = datetime.strptime(variables['event_time_est'].get(), '%m-%d-%Y %I:%M:%S %p')
+    cst = est - timedelta(hours=1)
+    mst = est - timedelta(hours=2)
+    variables['event_time_cst'].set(cst.strftime('%m-%d-%Y %H:%M:%S %p'))
+    variables['event_time_mst'].set(mst.strftime('%m-%d-%Y %H:%M:%S %p'))
+    variables['car'].set(get_data_frame_value(index='INDEX_CAR'))
+    variables['total_time'].set(get_data_frame_value(index='INDEX_TOTAL_TIME'))
+    variables['current_position'].set(get_data_frame_value(index='INDEX_CURRENT_POSITION'))
+    variables['total_drivers'].set(get_data_frame_value(index='INDEX_TOTAL_DRIVER'))
+    variables['gap_2_start'].set(get_data_frame_value(index='INDEX_GAP_TO_RACE_START'))
+    variables['practice_duration'].set(get_data_frame_value(index='INDEX_PRACTICE_DURATION'))
+    variables['qualify_duration'].set(get_data_frame_value(index='INDEX_QUALIFY_DURATION'))
+    variables['time_to_green'].set(get_data_frame_value(index='INDEX_TIME_TO_GREEN'))
+    variables['time_to_start'].set(get_data_frame_value(index='INDEX_TIME_TO_START'))
+    variables['sim_time_start'].set(get_data_frame_value(index='INDEX_SIM_TIME_START'))
+    variables['theoretical_stint_time'].set(get_data_frame_value(index='INDEX_THEORETICAL_STINT_TIME'))
+    variables['average_stint_time'].set(get_data_frame_value(index='INDEX_AVERAGE_STINT_TIME'))
+    variables['weather'] = []
+    variables['drivers_time_slots'] = {}
+    variables['drivers_raw'] = []
+    variables['drivers'].set(variables['drivers_raw'])
+    root.update()
+
+    for i in range(1, 9):
+        driver = get_data_frame_value(index='INDEX_DRIVER_' + str(i))
+        if driver != f'Driver {i}':
+            variables['drivers_raw'].append(driver)
+            variables['drivers_time_slots'][driver] = []
+            for j in range(1, int(variables['total_time'].get()) + 1):
+                variables['drivers_time_slots'][driver].append(get_data_frame_value(col=Q + i, row=j))
+
+    variables['drivers'].set(variables['drivers_raw'])
+    elements['listbox_drivers'].update()
+
+
+
+    for i in range(WEATHER_LENGTH):
+        variables['weather'].append(get_data_frame_value(col=Z, row=i + 1))
+
+    #TODO: add race data readers
+
 
 
 if __name__ == "__main__":

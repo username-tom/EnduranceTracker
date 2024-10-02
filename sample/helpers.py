@@ -41,6 +41,35 @@ def login():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
+def get_sheets():
+    global creds
+
+    if creds is None:
+        messagebox.showerror("Error", "Credentials is None")
+        return
+
+    try:
+        service = build("sheets", "v4", credentials=creds)
+
+        # Call the Sheets API
+        sheet = service.spreadsheets()
+        result = sheet.get(spreadsheetId=SAMPLE_SPREADSHEET_ID).execute()
+        sheets = result.get('sheets', [])
+
+        if not sheets:
+            messagebox.showerror("Error", "No sheets found.")
+            return
+
+        to_return = []
+        for sheet in sheets:
+            # print(sheet.get('properties', {}).get('title', ''))
+            to_return.append(sheet.get('properties', {}).get('title', ''))
+        # print(to_return)
+        return to_return
+    except HttpError as err:
+        messagebox.showerror("Error", err)
+        return
+
 def get_values(s="Template"):
     global creds, data_frame
 
@@ -76,6 +105,13 @@ def update_values(s="Template", v=None):
     
     if isinstance(v, DataFrame):
         v = v.values.tolist()
+        body = {
+            'values': v
+        }
+    elif v is None:
+        body = {
+            'values': data_frame.values.tolist()
+        }
     elif not isinstance(v, list):
         messagebox.showerror("Error", "Value to update is not a list")
         return
@@ -83,9 +119,9 @@ def update_values(s="Template", v=None):
     try:
         service = build("sheets", "v4", credentials=creds)
 
-        body = {
-            'values': v
-        }
+        # body = {
+        #     'values': v
+        # }
 
         # Call the Sheets API
         sheet = service.spreadsheets()
@@ -142,7 +178,8 @@ def add_event(name=''):
         messagebox.showerror("Failed to add new event", err)
     else:
         print("Event added")
-    
+
+        update_data_frame_value(0, 1, value=name)
         update_values(name, data_frame)
 
 
@@ -174,10 +211,12 @@ def get_data_frame_value(row=0, col=0, index=''):
     else:
         return data_frame.at[INDEX[index][0], INDEX[index][1]]
 
+
 # Test the functions
-login()
-if creds:
-    get_values('Template')
-    update_data_frame_value(0, 1, value='2024 24H SPA')
-    update_values('Template', data_frame)
-    add_event('2024 24H SPA')
+# login()
+# if creds:
+#     get_sheets()
+    # get_values('Template')
+    # update_data_frame_value(0, 1, value='2024 24H SPA')
+    # update_values('Template', data_frame)
+    # add_event('2024 24H SPA')
