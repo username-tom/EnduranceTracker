@@ -6,6 +6,9 @@ os.chdir(OWD)
 
 from docs.conf import *
 
+class TrackerError(Exception):
+    pass
+
 import os.path
 
 from google.auth.transport.requests import Request
@@ -21,7 +24,7 @@ from tkinter import messagebox
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 creds = None
-data_frame = None
+data = {}
 
 def login():
     global creds
@@ -71,7 +74,7 @@ def get_sheets():
         return
 
 def get_values(s="Template"):
-    global creds, data_frame
+    global creds, data
 
     try:
         service = build("sheets", "v4", credentials=creds)
@@ -93,15 +96,15 @@ def get_values(s="Template"):
     except HttpError as err:
         messagebox.showerror("Error", err)
     else:
-        data_frame = DataFrame(data=values)
-        # print(data_frame)
+        data = DataFrame(data=values)
+        # print(data)
+        return data
 
 def update_values(s="Template", v=None):
-    global creds, data_frame
+    global creds, data
 
     if v is None:
-        messagebox.showerror("Error", "Value to update is None")
-        return
+        raise TrackerError("Value to update is None")
     
     if isinstance(v, DataFrame):
         v = v.values.tolist()
@@ -110,7 +113,7 @@ def update_values(s="Template", v=None):
         }
     elif v is None:
         body = {
-            'values': data_frame.values.tolist()
+            'values': data.values.tolist()
         }
     elif not isinstance(v, list):
         messagebox.showerror("Error", "Value to update is not a list")
@@ -142,7 +145,7 @@ def update_values(s="Template", v=None):
         messagebox.showerror("Error", err)
 
 def add_event(name=''):
-    global creds, data_frame
+    global creds, data
 
     if name == '':
         messagebox.showerror("Error", "Event name is empty")
@@ -180,13 +183,13 @@ def add_event(name=''):
         print("Event added")
 
         update_data_frame_value(0, 1, value=name)
-        update_values(name, data_frame)
+        update_values(name, data)
 
 
 def update_data_frame_value(row=0, col=0, index='', value=None):
-    global data_frame
+    global data
 
-    if data_frame is None:
+    if data is None:
         messagebox.showerror("Error", "Data frame is None")
         return
 
@@ -195,21 +198,20 @@ def update_data_frame_value(row=0, col=0, index='', value=None):
         return
     
     if index not in INDEX:
-        data_frame.at[row, col] = value
+        data.at[row, col] = value
     else:
-        data_frame.at[INDEX[index][0], INDEX[index][1]] = value
+        data.at[INDEX[index][0], INDEX[index][1]] = value
 
 def get_data_frame_value(row=0, col=0, index=''):
-    global data_frame
+    global data
 
-    if data_frame is None:
-        messagebox.showerror("Error", "Data frame is None")
-        return
+    if data is None:
+        raise TrackerError("Data frame is None")
 
     if index not in INDEX:
-        return data_frame.at[row, col]
+        return data.at[row, col]
     else:
-        return data_frame.at[INDEX[index][0], INDEX[index][1]]
+        return data.at[INDEX[index][0], INDEX[index][1]]
 
 
 # Test the functions
@@ -218,5 +220,5 @@ def get_data_frame_value(row=0, col=0, index=''):
 #     get_sheets()
     # get_values('Template')
     # update_data_frame_value(0, 1, value='2024 24H SPA')
-    # update_values('Template', data_frame)
+    # update_values('Template', data)
     # add_event('2024 24H SPA')

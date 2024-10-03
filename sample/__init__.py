@@ -14,14 +14,16 @@ from datetime import datetime, timedelta
 from time import sleep
 import pytz
 
-
 root = Tk()
 settings = {}
 variables = {}
 elements = {}
+current_event = 'Template'
+# data = None
 
 from helpers import *
 from core import *
+
 
 
 def main():
@@ -37,7 +39,7 @@ def main():
     root.mainloop()
 
 def loading():
-    global root, settings, variables, elements
+    global root, settings, variables, elements, data
 
     s = ttk.Style()
     s.configure("TNotebook", 
@@ -78,7 +80,7 @@ def loading():
 
 
 def load_menu():
-    global root, settings, variables, elements
+    global root, settings, variables, elements, current_event, data
 
     root['menu'] = elements['main_menu']
     
@@ -86,8 +88,7 @@ def load_menu():
     elements['main_menu'].add_cascade(label="App", menu=menu_app)
     elements['menu_app'] = menu_app
     elements['menu_app'].add_command(label="Change Spreadsheet", command=change_spreadsheet)
-    elements['menu_app'].add_command(label="Upload", command=lambda: update_values(
-        elements['listbox_events'].curselection()[0], data_frame))
+    elements['menu_app'].add_command(label="Upload", command=lambda: update_values(current_event, data))
     elements['menu_app'].add_command(label="Exit", command=on_closing)
 
 def load_status():
@@ -386,18 +387,22 @@ def load_tab_plan():
     elements['plan_frame_actual'] = actual_frame
 
 def init_time_scheduler():
-    global root, settings, variables, elements, data_frame
+    global root, settings, variables, elements, data
 
     if 'plan_content' in elements:
         elements['plan_content'].__del__()
     if 'actual_content' in elements:
         elements['actual_content'].__del__()
+
+    for i in range(8):
+        elements['plan_frame_plan'].grid_rowconfigure(i, weight=0)
+        elements['plan_frame_actual'].grid_rowconfigure(i, weight=0)
     root.update()
 
-    plan_content = TimeScheduler(root, settings, variables, elements, target='plan')
+    plan_content = TimeScheduler(root, settings, variables, elements, data, target='plan')
     elements['plan_content'] = plan_content
 
-    actual_content = TimeScheduler(root, settings, variables, elements, target='actual')
+    actual_content = TimeScheduler(root, settings, variables, elements, data, target='actual')
     elements['actual_content'] = actual_content
 
 def load_tab_race():
@@ -425,7 +430,7 @@ def update_status():
 
 
 def add_driver():
-    global settings, variables, elements
+    global settings, variables, elements, current_event, data
 
     if variables['add_driver'].get() == '':
         return
@@ -439,15 +444,25 @@ def add_driver():
     
     variables['drivers_raw'].append(variables['add_driver'].get())
     variables['drivers'].set(variables['drivers_raw'])
-    variables['add_driver'].set('')
 
     if variables['add_driver'].get() not in variables['drivers_time_slots']:
-        variables['drivers_time_slots'][variables['add_driver'].get()] = []
+        variables['drivers_time_slots'][variables['add_driver'].get()] = ['0'] * int(variables['total_time'].get())
 
-    #TODO: update data frame
+    for i, driver in enumerate(variables['drivers_raw']):
+        print(driver)
+        update_data_frame_value(index=f'INDEX_DRIVER_{i + 1}', value=driver)
+        for j in range(1, int(variables['total_time'].get()) + 1):
+            update_data_frame_value(col=INDEX[f'INDEX_DRIVER_{i + 1}'][1], row=j, 
+                                    value=variables['drivers_time_slots'][driver][j - 1])
+    
+
+    init_time_scheduler()
+    # print(data)
+    update_values(current_event, data)
+    variables['add_driver'].set('')
 
 def remove_driver():
-    global settings, variables, elements
+    global settings, variables, elements, current_event, data
 
     listbox_drivers = elements['listbox_drivers']
     if len(listbox_drivers.curselection()) == 0:
@@ -460,7 +475,16 @@ def remove_driver():
         variables['drivers_raw'].remove(i)
     variables['drivers'].set(variables['drivers_raw'])
 
-    #TODO: update data frame
+    for i, driver in enumerate(variables['drivers_raw']):
+        update_data_frame_value(index=f'INDEX_DRIVER_{i + 1}', value=driver)
+        for j in range(1, int(variables['total_time'].get()) + 1):
+            update_data_frame_value(col=INDEX[f'INDEX_DRIVER_{i + 1}'][1], row=j, 
+                                    value=variables['drivers_time_slots'][driver][j - 1])
+        update_data_frame_value(index=f'INDEX_DRIVER_{i + 2}', value=f'Driver {i + 2}')
+    
+
+    init_time_scheduler()
+    update_values(current_event, data)
 
 def on_closing():
     global root, settings, variables, elements
@@ -480,6 +504,8 @@ def change_spreadsheet():
     update_sheets_list()
 
 def update_sheets_list(index=0):
+    global root, settings, variables, elements, data
+
     variables['all_events_raw'] = get_sheets()
     variables['all_events'].set(variables['all_events_raw'])
     elements['listbox_events'].update()
@@ -487,7 +513,7 @@ def update_sheets_list(index=0):
     change_sheet()
 
 def change_sheet(event=None):
-    global root, settings, variables, elements, data_frame
+    global root, settings, variables, elements, data, current_event
 
     event_list = elements['listbox_events']
     selected = event_list.curselection()
@@ -495,7 +521,10 @@ def change_sheet(event=None):
         return
     
     event = event_list.get(selected[0])
-    get_values(event)
+    current_event = event
+    data = get_values(current_event)
+    # print(data)
+
     update_variables_from_data_frame()
     init_time_scheduler()
 
@@ -511,7 +540,7 @@ def add_event_popup():
     update_sheets_list(original_sheet_len)
 
 def update_variables_from_data_frame():
-    global root, settings, variables, elements, data_frame
+    global root, settings, variables, elements, data, creds
 
     variables['event'].set(get_data_frame_value(index='INDEX_EVENT_NAME'))
     variables['event_time_est'].set(get_data_frame_value(index='INDEX_EVENT_TIME_EST'))

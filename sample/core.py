@@ -1,26 +1,30 @@
-from helpers import *
 from docs.conf import *
 from tkinter import *
 from tkinter import ttk
+from helpers import *
 
 class TrackerError(Exception):
     pass
 
 
 class TimeScheduler:
-    def __init__(self, root, settings, variables, elements, target='plan'):
+    def __init__(self, root, settings, variables, elements, data, target='plan'):
+        
         self.root = root
         self.settings = settings
         self.variables = variables
         self.elements = elements
         self.target = target
         self.widgets = {}
+        self.data = data
 
         if target == 'plan' and 'plan_frame_plan' not in self.elements:
             raise TrackerError("Missing plan_frame_plan")
 
         if target == 'actual' and 'plan_frame_actual' not in self.elements:
             raise TrackerError("Missing plan_frame_actual")
+        
+        self.target = target
         
         if 'drivers_raw' not in self.variables:
             raise TrackerError("Missing drivers_raw")
@@ -36,7 +40,7 @@ class TimeScheduler:
         temp_label = Label(frame, text='Hour', background=CONTENT_BG)
         temp_label.grid(row=0, column=0, sticky='news')
         self.widgets['label_hour'] = temp_label
-        print(self.variables['drivers_time_slots'])
+        # print(self.variables['drivers_time_slots'])
 
         for i, driver in enumerate(self.variables['drivers_raw']):
             temp_label = Label(frame, text=driver, background=CONTENT_BG)
@@ -60,25 +64,36 @@ class TimeScheduler:
                 frame.grid_columnconfigure(j, weight=1)
 
     def toggle_frame(self, event=None):
-        global data_frame
-
         widget = event.widget
-        if widget['background'] == 'green':
-            widget['background'] = 'yellow'
-            driver, hour = self.get_widget_name(widget)
-            self.variables['drivers_time_slots'][driver][int(hour) - 1] = '2'
-            update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver), value='2')
-        elif widget['background'] == 'yellow':
-            widget['background'] = 'red'
-            driver, hour = self.get_widget_name(widget)
-            self.variables['drivers_time_slots'][driver][int(hour) - 1] = '0'
-            update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver), value='0')
-        else:
-            widget['background'] = 'green'
-            driver, hour = self.get_widget_name(widget)
-            self.variables['drivers_time_slots'][driver][int(hour) - 1] = '1'
-            update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver), value='1')
+
+        if self.target == 'plan':
+            if widget['background'] == 'green':
+                widget['background'] = 'yellow'
+                driver, hour = self.get_widget_name(widget)
+                self.variables['drivers_time_slots'][driver][int(hour) - 1] = '2'
+                self.update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver) + R, value='2')
+            elif widget['background'] == 'yellow':
+                widget['background'] = 'red'
+                driver, hour = self.get_widget_name(widget)
+                self.variables['drivers_time_slots'][driver][int(hour) - 1] = '0'
+                self.update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver) + R, value='0')
+            else:
+                widget['background'] = 'green'
+                driver, hour = self.get_widget_name(widget)
+                self.variables['drivers_time_slots'][driver][int(hour) - 1] = '1'
+                self.update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver) + R, value='1')
             
+            update_values(self.variables['event'].get(), self.data)
+            get_values(self.variables['event'].get())
+
+
+    def update_data_frame_value(self, row=0, col=0, index='', value=None):
+        if index not in INDEX:
+            self.data.at[row, col] = value
+        else:
+            self.data.at[INDEX[index][0], INDEX[index][1]] = value
+            print(self.data.at[INDEX[index][0], INDEX[index][1]])
+    
     def get_widget_name(self, widget):
         for key, value in self.widgets.items():
             if value == widget:
