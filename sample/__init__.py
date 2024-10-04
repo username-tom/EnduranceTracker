@@ -448,17 +448,7 @@ def add_driver():
     if variables['add_driver'].get() not in variables['drivers_time_slots']:
         variables['drivers_time_slots'][variables['add_driver'].get()] = ['0'] * int(variables['total_time'].get())
 
-    for i, driver in enumerate(variables['drivers_raw']):
-        print(driver)
-        update_data_frame_value(index=f'INDEX_DRIVER_{i + 1}', value=driver)
-        for j in range(1, int(variables['total_time'].get()) + 1):
-            update_data_frame_value(col=INDEX[f'INDEX_DRIVER_{i + 1}'][1], row=j, 
-                                    value=variables['drivers_time_slots'][driver][j - 1])
-    
-
-    init_time_scheduler()
-    # print(data)
-    update_values(current_event, data)
+    reset_drivers_time_slots()
     variables['add_driver'].set('')
 
 def remove_driver():
@@ -475,21 +465,27 @@ def remove_driver():
         variables['drivers_raw'].remove(i)
     variables['drivers'].set(variables['drivers_raw'])
 
+    reset_drivers_time_slots()
+
+def reset_drivers_time_slots():
+    global settings, variables, elements, current_event, data
+
     for i, driver in enumerate(variables['drivers_raw']):
+        print(driver)
         update_data_frame_value(index=f'INDEX_DRIVER_{i + 1}', value=driver)
         for j in range(1, int(variables['total_time'].get()) + 1):
             update_data_frame_value(col=INDEX[f'INDEX_DRIVER_{i + 1}'][1], row=j, 
                                     value=variables['drivers_time_slots'][driver][j - 1])
-        update_data_frame_value(index=f'INDEX_DRIVER_{i + 2}', value=f'Driver {i + 2}')
     
-
     init_time_scheduler()
+    # print(data)
     update_values(current_event, data)
 
 def on_closing():
     global root, settings, variables, elements
 
     settings['status_state'] = False
+    settings['status_thread'] = None
     
     set_config('general', 'geometry', root.geometry())
     sleep(1)

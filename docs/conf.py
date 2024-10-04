@@ -58,6 +58,7 @@ INDEX = {
 WEATHER_LENGTH = 11
 STATUS_BG = "#f7d6ff"
 CONTENT_BG = "#fff9d6"
+HOUR_STINT_FONT = 'TkFixedFont'
 
 import configparser as cp
 import os
