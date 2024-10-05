@@ -9,7 +9,7 @@ class TrackerError(Exception):
 
 
 class TimeScheduler:
-    def __init__(self, root, settings, variables, elements, data, target='plan'):
+    def __init__(self, root, settings, variables, elements, data, target='plan', current_event=''):
         
         self.root = root
         self.settings = settings
@@ -18,6 +18,7 @@ class TimeScheduler:
         self.target = target
         self.widgets = {}
         self.data = data
+        self.current_event = current_event
 
         if target == 'plan' and 'plan_frame_plan' not in self.elements:
             raise TrackerError("Missing plan_frame_plan")
@@ -74,30 +75,20 @@ class TimeScheduler:
             
             hour_frame = Frame(time_frame, background=CONTENT_BG)
             hour_frame.grid(row=0, column=0, sticky='news')
-            # stint_frame = Frame(time_frame, background=CONTENT_BG)
-            # stint_frame.grid(row=1, column=0, sticky='news')
 
             for j in range(int(self.variables['total_time'].get())):
                 temp_label = Label(hour_frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
                                 border=1, relief='flat', font=HOUR_STINT_FONT)
                 temp_label.grid(row=0, column=j, sticky='news', padx=1, pady=1) 
-                # hour_frame.grid_columnconfigure(j, weight=1)
                 hour_frame.grid_columnconfigure(j, weight=weight)
                 if j == int(self.variables['total_time'].get()) - 1:
                     hour_frame.grid_columnconfigure(j, weight=1)
 
             for j in range(stints):
-                # temp_label = Label(stint_frame, text=j + 1, background=CONTENT_BG)
-                # temp_label.grid(row=0, column=j, sticky='news', padx=1, pady=1)
                 temp_label = Label(frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
                                    border=1, relief='flat', font=HOUR_STINT_FONT)
                 temp_label.grid(row=1, column=j + 1, sticky='news', padx=1, pady=1)
-                # stint_frame.grid_columnconfigure(j, weight=1)
-                # stint_frame.grid_columnconfigure(j, weight=weight)
-                # if j == stints - 1:
-                #     stint_frame.grid_columnconfigure(j, weight=1)
 
-            # for j in range(1, int(self.variables['total_time'].get()) + 1):
                 temp_frame = Frame(frame, background='red')
                 if self.variables['drivers_time_slots'][driver][j] == '1':
                     temp_frame['background'] = 'green'
@@ -128,9 +119,12 @@ class TimeScheduler:
                 self.variables['drivers_time_slots'][driver][int(hour) - 1] = '1'
                 self.update_data_frame_value(int(hour), self.variables['drivers_raw'].index(driver) + R, value='1')
             
-            update_values(self.variables['event'].get(), self.data)
-            get_values(self.variables['event'].get())
+            range = self.get_range(int(hour), self.variables['drivers_raw'].index(driver) + R)
+            update_values(self.current_event, [self.variables['drivers_time_slots'][driver][int(hour) - 1]], range)
+            get_values(self.current_event, range)
 
+    def get_range(self, row=0, col=0):
+        return f"{chr(65 + col)}{row + 1}"
 
     def update_data_frame_value(self, row=0, col=0, index='', value=None):
         if index not in INDEX:

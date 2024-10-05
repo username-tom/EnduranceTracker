@@ -19,6 +19,7 @@ from googleapiclient.errors import HttpError
 from time import sleep
 from pandas import DataFrame
 from tkinter import messagebox
+import numpy as np
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -73,7 +74,7 @@ def get_sheets():
         messagebox.showerror("Error", err)
         return
 
-def get_values(s="Template"):
+def get_values(s="Template", range=SAMPLE_RANGE_NAME):
     global creds, data
 
     try:
@@ -83,7 +84,7 @@ def get_values(s="Template"):
         sheet = service.spreadsheets()
         result = (
             sheet.values()
-            .get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}{SAMPLE_RANGE_NAME}")
+            .get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}!{range}")
             .execute()
         )
         values = result.get("values", [])
@@ -100,7 +101,7 @@ def get_values(s="Template"):
         # print(data)
         return data
 
-def update_values(s="Template", v=None):
+def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
     global creds, data
 
     if v is None:
@@ -115,9 +116,16 @@ def update_values(s="Template", v=None):
         body = {
             'values': data.values.tolist()
         }
-    elif not isinstance(v, list):
-        messagebox.showerror("Error", "Value to update is not a list")
-        return
+    elif isinstance(v, list):
+        body = {
+            'values': DataFrame(data=v).T.values.tolist()
+        }
+    else:
+        body = {
+            'values': DataFrame(data=v).values.tolist()
+        }
+
+    print(body)
     
     try:
         service = build("sheets", "v4", credentials=creds)
@@ -130,7 +138,7 @@ def update_values(s="Template", v=None):
         sheet = service.spreadsheets()
         result = (
             sheet.values()
-            .update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}{SAMPLE_RANGE_NAME}", 
+            .update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}!{range}", 
                     body=body, valueInputOption='RAW')
             .execute()
         )
@@ -176,6 +184,8 @@ def add_event(name=''):
             sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=body)
             .execute()
         )
+
+        #TODO: add result check here
 
     except HttpError as err:
         messagebox.showerror("Failed to add new event", err)
