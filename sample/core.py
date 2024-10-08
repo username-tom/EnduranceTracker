@@ -143,5 +143,8 @@ class TimeScheduler:
 
     def __del__(self):
         for key, value in self.widgets.items():
-            value.destroy()
+            try:
+                value.destroy()
+            except TclError:
+                pass
         self.root.update()

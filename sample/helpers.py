@@ -17,7 +17,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from time import sleep
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 from tkinter import messagebox
 import numpy as np
 
@@ -125,7 +125,7 @@ def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
             'values': DataFrame(data=v).values.tolist()
         }
 
-    print(body)
+    # print(body)
     
     try:
         service = build("sheets", "v4", credentials=creds)
@@ -222,6 +222,10 @@ def get_data_frame_value(row=0, col=0, index=''):
         return data.at[row, col]
     else:
         return data.at[INDEX[index][0], INDEX[index][1]]
+
+def tz_diff(dt, tz1, tz2):
+    date = to_datetime(dt)
+    return date.tz_localize(tz1).tz_convert(tz2)
 
 
 # Test the functions
