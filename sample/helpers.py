@@ -17,7 +17,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from time import sleep
-from pandas import DataFrame, to_datetime
+from pandas import DataFrame, to_datetime, concat
 from tkinter import messagebox
 import numpy as np
 
@@ -57,7 +57,7 @@ def get_sheets():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.get(spreadsheetId=SAMPLE_SPREADSHEET_ID).execute()
+        result = sheet.get(spreadsheetId=SHEET_ID).execute()
         sheets = result.get('sheets', [])
 
         if not sheets:
@@ -84,7 +84,7 @@ def get_values(s="Template", range=SAMPLE_RANGE_NAME):
         sheet = service.spreadsheets()
         result = (
             sheet.values()
-            .get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}!{range}")
+            .get(spreadsheetId=SHEET_ID, range=f"{s}!{range}")
             .execute()
         )
         values = result.get("values", [])
@@ -138,7 +138,7 @@ def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
         sheet = service.spreadsheets()
         result = (
             sheet.values()
-            .update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"{s}!{range}", 
+            .update(spreadsheetId=SHEET_ID, range=f"{s}!{range}", 
                     body=body, valueInputOption='RAW')
             .execute()
         )
@@ -181,7 +181,7 @@ def add_event(name=''):
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = (
-            sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=body)
+            sheet.batchUpdate(spreadsheetId=SHEET_ID, body=body)
             .execute()
         )
 

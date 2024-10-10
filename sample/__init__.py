@@ -140,8 +140,17 @@ def load_status():
                        font=("Helvetica", 16, 'bold'))
     temp_label.grid(row=len(STATUS_TIMES.split(',')) + 3, column=1, sticky="nsew")
     temp_label.bind('<Button-1>', copy_time)
+    elements['label_event_time'] = temp_label
 
-
+    variables['current_sim_time'] = StringVar(value='00:00:00')
+    temp_label = Label(status, text='Sim Time', bg=STATUS_BG, font=("Helvetica", 16, 'bold'))
+    temp_label.grid(row=len(STATUS_TIMES.split(',')) + 4, column=0, sticky="nsew")
+    temp_label.bind('<Button-1>', copy_time)
+    temp_label = Label(status, textvariable=variables['current_sim_time'], bg=STATUS_BG, 
+                       font=("Helvetica", 16, 'bold'))
+    temp_label.grid(row=len(STATUS_TIMES.split(',')) + 4, column=1, sticky="nsew")
+    temp_label.bind('<Button-1>', copy_time)
+    elements['label_sim_time'] = temp_label
 
     
 
@@ -451,25 +460,29 @@ def load_tab_race():
     input_frame = Frame(tab_race, bg=CONTENT_BG)
     input_frame.grid(row=0, column=1, sticky="nsew", padx=5)
     elements['race_tracker_input_frame'] = input_frame
-    input_frame.grid_rowconfigure((0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11), weight=1)
+    for i in range(13):
+        if i != 5:
+            input_frame.grid_rowconfigure(i, weight=1)
     input_frame.grid_columnconfigure((0, 1), weight=1)
 
     temp_separator = ttk.Separator(input_frame, orient=HORIZONTAL)
-    temp_separator.grid(row=1, column=5, columnspan=2, sticky="nsew", pady=20)
+    temp_separator.grid(row=5, column=0, columnspan=2, sticky="nsew", pady=10)
 
     temp_label = Label(input_frame, bg=CONTENT_BG, text='Edit', font=("Helvetica", 16, 'bold'))
     edit_frame = LabelFrame(input_frame, bg=CONTENT_BG, labelwidget=temp_label)
     edit_frame.grid(row=0, column=0, rowspan=5, sticky="nsew")
     elements['race_tracker_edit_frame'] = edit_frame
-    edit_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
+    for i in range(7):
+        edit_frame.grid_rowconfigure(i, weight=1)
     edit_frame.grid_columnconfigure((0, 1), weight=1)
 
     temp_label = Label(input_frame, bg=CONTENT_BG, text='Current', font=("Helvetica", 16, 'bold'))
     current_frame = LabelFrame(input_frame, bg=CONTENT_BG, 
                                labelwidget=temp_label)
-    current_frame.grid(row=6, column=0, rowspan=6, sticky="nsew")
+    current_frame.grid(row=7, column=0, rowspan=7, sticky="nsew")
     elements['race_tracker_current_frame'] = current_frame
-    current_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7), weight=1)
+    for i in range(8):
+        current_frame.grid_rowconfigure(i, weight=1)
     current_frame.grid_columnconfigure((0, 1), weight=1)
 
     # edit frame
@@ -526,6 +539,20 @@ def load_tab_race():
     temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'])
     temp_entry.grid(row=5, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_edit_actual_weather_entry'] = temp_entry
+
+    temp_frame = Frame(edit_frame, bg=CONTENT_BG)
+    temp_entry = Text(temp_frame, height=2, width=15)
+    temp_entry.grid(column = 0, row = 0, sticky = 'nwes')
+    ys = ttk.Scrollbar(temp_frame, orient = 'vertical', command = temp_entry.yview)
+    xs = ttk.Scrollbar(temp_frame, orient = 'horizontal', command = temp_entry.xview)
+    temp_entry['yscrollcommand'] = ys.set
+    temp_entry['xscrollcommand'] = xs.set
+    xs.grid(column = 0, row = 1, sticky = 'we')
+    ys.grid(column = 1, row = 0, sticky = 'ns')
+    temp_frame.grid_columnconfigure(0, weight = 1)
+    temp_frame.grid_rowconfigure(0, weight = 1)
+    temp_frame.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=5, padx=10)
+    elements['race_tracker_edit_notes_text'] = temp_entry
 
     temp_button = Button(input_frame, text="Update", command=edit_update)
     temp_button.grid(row=1, column=1, sticky="nsew", padx=20, pady=20)
@@ -600,23 +627,37 @@ def load_tab_race():
     temp_entry.grid(row=6, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_current_actual_weather_entry'] = temp_entry
 
+    temp_frame = Frame(current_frame, bg=CONTENT_BG)
+    temp_entry = Text(temp_frame, height=2, width=15)
+    temp_entry.grid(column = 0, row = 0, sticky = 'nwes')
+    ys = ttk.Scrollbar(temp_frame, orient = 'vertical', command = temp_entry.yview)
+    xs = ttk.Scrollbar(temp_frame, orient = 'horizontal', command = temp_entry.xview)
+    temp_entry['yscrollcommand'] = ys.set
+    temp_entry['xscrollcommand'] = xs.set
+    xs.grid(column = 0, row = 1, sticky = 'we')
+    ys.grid(column = 1, row = 0, sticky = 'ns')
+    temp_frame.grid_columnconfigure(0, weight = 1)
+    temp_frame.grid_rowconfigure(0, weight = 1)
+    temp_frame.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=5, padx=10)
+    elements['race_tracker_current_notes_text'] = temp_entry
+
     temp_button = Button(input_frame, text="Add", command=current_add)
-    temp_button.grid(row=7, column=1, sticky="nsew", padx=20, pady=20)
+    temp_button.grid(row=7, column=1, sticky="nsew", padx=20, pady=10)
 
     temp_button = Button(input_frame, text="Practice", command=current_sessions)
-    temp_button.grid(row=8, column=1, sticky="nsew", padx=20, pady=20)
+    temp_button.grid(row=8, column=1, sticky="nsew", padx=20, pady=10)
     elements['session_button'] = temp_button
 
     temp_button = Button(input_frame, text='Back', command=current_back)
-    temp_button.grid(row=9, column=1, sticky="nsew", padx=20, pady=20)
+    temp_button.grid(row=9, column=1, sticky="nsew", padx=20, pady=10)
     elements['back_button'] = temp_button
 
     temp_button = Button(input_frame, text='Pitting IN', command=current_pit)
-    temp_button.grid(row=10, column=1, sticky="nsew", padx=20, pady=20)
+    temp_button.grid(row=10, column=1, sticky="nsew", padx=20, pady=10)
     elements['pit_button'] = temp_button
 
     temp_button = Button(input_frame, text='Copy from Above', command=current_copy)
-    temp_button.grid(row=11, column=1, sticky="nsew", padx=20, pady=20)
+    temp_button.grid(row=11, column=1, sticky="nsew", padx=20, pady=10)
 
 
 def start_status():
@@ -652,46 +693,48 @@ def update_status():
             variables['time_' + i.lower()].set(datetime.now().astimezone(pytz.timezone(i)).strftime('%H:%M:%S'))
         sleep(1)
         
-        if datetime.now(pytz.utc) > tz_diff(variables['event_time_est'].get(), 'US/Eastern', 'GMT'):
+        race_length = get_delta('total_time')
+        now = datetime.now(pytz.utc)
+        event_start = tz_diff(variables['event_time_est'].get(), 'US/Eastern', 'GMT')
+        event_end = event_start + race_length
+
+        if event_start < now < event_end:
             duration = get_duration()
-            practice = get_delta('practice_duration')
-            qualify = get_delta('qualify_duration')
-            to_green = get_delta('time_to_green')
-            to_start = get_delta('time_to_start')
+            practice, qualify, to_green, to_start, sim_start = map(get_delta, 
+            ['practice_duration', 'qualify_duration', 'time_to_green', 'time_to_start', 'sim_time_start'])
             gap_2_start = str(practice + qualify + to_green + to_start).split('.')[0]
             variables['gap_2_start'].set(gap_2_start)
-            race_length = timedelta(hours=float(variables['total_time'].get()))
 
             elements['session_button'].config(state=NORMAL)
             elements['back_button'].config(state=NORMAL)
             elements['pit_button'].config(state=NORMAL)
 
             if duration <= practice:
-                variables['current_session'].set('Practice')
-                variables['current_event_time'].set(str(duration).split('.')[0])
+                session, event_time = 'Practice', duration
             elif duration <= practice + qualify:
-                variables['current_session'].set('Qualify')
-                variables['current_event_time'].set(str(duration - practice).split('.')[0])
+                session, event_time = 'Qualify', duration - practice
             elif duration <= practice + qualify + to_green:
-                variables['current_session'].set('Waiting for Drivers')
-                variables['current_event_time'].set(str(duration - practice - qualify).split('.')[0])
+                session, event_time = 'Waiting for Drivers', duration - practice - qualify
+                variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             elif duration <= practice + qualify + to_green + to_start:
-                variables['current_session'].set('Formation Lap')
-                variables['current_event_time'].set(
-                    str(duration - practice - qualify - to_green).split('.')[0])
-            elif duration <= practice + qualify + to_green + to_start + race_length:
-                variables['current_session'].set('Race Started')
-                variables['current_event_time'].set(
-                    str(duration - practice - qualify - to_green - to_start).split('.')[0])
+                session, event_time = 'Formation Lap', duration - practice - qualify - to_green
+                variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             else:
-                variables['current_session'].set("Race Over")
-                variables['current_event_time'].set('00:00:00')
+                session, event_time = 'Race Started', duration - practice - qualify - to_green - to_start
+                variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
+            if duration > practice + qualify + to_green + to_start + race_length:
+                session, event_time = 'Race Over', timedelta(0)
                 elements['session_button'].config(state=DISABLED, text='Race Over')
                 elements['back_button'].config(state=DISABLED)
                 elements['pit_button'].config(state=DISABLED)
 
-        else:
+            variables['current_session'].set(session)
+            variables['current_event_time'].set(str(event_time).split('.')[0])
+        elif now < event_start:
             variables['current_session'].set('Planning')
+            variables['current_event_time'].set('00:00:00')
+        else:
+            variables['current_session'].set('Race Over')
             variables['current_event_time'].set('00:00:00')
 
 
@@ -768,11 +811,11 @@ def on_closing():
     root.destroy()
 
 def change_spreadsheet():
-    global SAMPLE_SPREADSHEET_ID, root, settings, variables, elements
+    global SHEET_ID, root, settings, variables, elements
 
     id = simpledialog.askstring("Attention", "Enter new spreadsheet ID")
 
-    SAMPLE_SPREADSHEET_ID = id
+    SHEET_ID = id
     update_sheets_list()
 
 def update_sheets_list(index=0):
@@ -817,6 +860,8 @@ def change_race_slot(event=None):
     variables['race_tracker_edit_actual_driver'].set(tracker.loc[slot, 'Actual Driver'])
     variables['race_tracker_edit_est_chance_of_rain'].set(tracker.loc[slot, 'Est. Chance of Rain (%)'])
     variables['race_tracker_edit_actual_weather'].set(tracker.loc[slot, 'Act. Weather at Time'])
+    elements['race_tracker_edit_notes_text'].delete('1.0', 'end')
+    elements['race_tracker_edit_notes_text'].insert('end', tracker.loc[slot, 'Notes'])
 
 def add_event_popup():
     global root, settings, variables, elements
@@ -845,9 +890,10 @@ def edit_update(event=None):
     tracker.at[slot, 'Actual Driver'] = variables['race_tracker_edit_actual_driver'].get()
     tracker.at[slot, 'Est. Chance of Rain (%)'] = variables['race_tracker_edit_est_chance_of_rain'].get()
     tracker.at[slot, 'Act. Weather at Time'] = variables['race_tracker_edit_actual_weather'].get()
+    tracker.at[slot, 'Notes'] = elements['race_tracker_edit_notes_text'].get('1.0', 'end-1c')
 
-    # print(tracker.iloc[slot, 2:8].T.values.tolist())
-    update_values(current_event, tracker.iloc[slot, 1:8].T.values.tolist(), f'F{slot + 1}:K{slot + 1}')
+    # print(tracker.iloc[slot, 1:8].T.values.tolist())
+    update_values(current_event, tracker.iloc[slot, 1:8].T.values.tolist(), f'E{slot + 1}:K{slot + 1}')
 
 def edit_reset(event=None):
     global root, settings, variables, elements, tracker, current_event
@@ -865,6 +911,8 @@ def edit_reset(event=None):
     variables['race_tracker_edit_actual_driver'].set(tracker.at[slot, 'Actual Driver'])
     variables['race_tracker_edit_est_chance_of_rain'].set(tracker.at[slot, 'Est. Chance of Rain (%)'])
     variables['race_tracker_edit_actual_weather'].set(tracker.at[slot, 'Act. Weather at Time'])
+    elements['race_tracker_edit_notes_text'].delete('1.0', 'end')
+    elements['race_tracker_edit_notes_text'].insert('end', tracker.at[slot, 'Notes'])
 
 def edit_delete(event=None):
     global root, settings, variables, elements, tracker, current_event, data
@@ -883,12 +931,20 @@ def edit_delete(event=None):
         variables['race_tracker_edit_actual_driver'].set('')
         variables['race_tracker_edit_est_chance_of_rain'].set(tracker.at[slot, 'Est. Chance of Rain (%)'])
         variables['race_tracker_edit_actual_weather'].set('Unknown')
+        elements['race_tracker_edit_notes_text'].delete('1.0', 'end')
 
     else:
         tracker.drop(slot, inplace=True)
         tracker.reset_index(drop=True, inplace=True)
-        data.at[1:201, D:K] = tracker.values
-        update_values(current_event, data.iloc[1:201, D:K].values.tolist(), 'D2:J200')
+        data.at[TRACKER_RANGE[0]:TRACKER_RANGE[1], TRACKER_RANGE[2]:TRACKER_RANGE[3]] = tracker.values
+        update_values(current_event, 
+                      data.iloc[TRACKER_RANGE[0]:TRACKER_RANGE[1], 
+                                TRACKER_RANGE[2]:TRACKER_RANGE[3]].values.tolist(), 
+                      'D2:K200')
+        update_variables_from_data_frame()
+        slots_list.selection_set(slot - 1)
+        change_race_slot()
+        
 
 def current_add(event=None):
     global root, settings, variables, elements, tracker, current_event, data
@@ -904,7 +960,8 @@ def current_add(event=None):
         variables['race_tracker_current_actual_stint'].get(),
         variables['race_tracker_current_actual_driver'].get(),
         variables['race_tracker_current_est_chance_of_rain'].get(),
-        variables['race_tracker_current_actual_weather'].get()
+        variables['race_tracker_current_actual_weather'].get(),
+        elements['race_tracker_current_notes_text'].get('1.0', 'end-1c')
     ]
     tracker.loc[len(tracker.index)] = to_add
     temp = tracker.iloc[2:, :].copy()
@@ -920,8 +977,10 @@ def current_add(event=None):
     # print(tracker)
 
     data.loc[len(data.index)] = data.iloc[-1, :].values.tolist()
-    data.iloc[1:201, D:K] = tracker.values.tolist()
-    update_values(current_event, data.iloc[1:201, D:K], 'D2:J200')
+    data.iloc[TRACKER_RANGE[0]:TRACKER_RANGE[1], TRACKER_RANGE[2]:TRACKER_RANGE[3]] = tracker.values.tolist()
+    update_values(current_event, 
+                  data.iloc[TRACKER_RANGE[0]:TRACKER_RANGE[1], TRACKER_RANGE[2]:TRACKER_RANGE[3]], 
+                  'D2:K200')
 
     variables['race_tracker_current_time'].set('')
 
@@ -1027,30 +1086,42 @@ def update_variables_from_data_frame():
     variables['drivers'].set(variables['drivers_raw'])
     root.update()
 
+    stints = ceil(get_delta('total_time') / get_delta('theoretical_stint_time'))
+
     for i in range(1, 9):
         driver = get_data_frame_value(index='INDEX_DRIVER_' + str(i))
         if driver != '':
             variables['drivers_raw'].append(driver)
             variables['drivers_time_slots'][driver] = []
-            for j in range(1, int(variables['total_time'].get()) + 1):
+            for j in range(1, stints + 1):
                 variables['drivers_time_slots'][driver].append(get_data_frame_value(col=Q + i, row=j))
 
     variables['drivers'].set(variables['drivers_raw'])
     elements['listbox_drivers'].update()
 
-    tracker = DataFrame(data=data.iloc[1:200, D:K].values.tolist(), columns=data.iloc[0, D:K].values.tolist())
+    tracker_raw = DataFrame(data=data.iloc[TRACKER_RANGE[0]:TRACKER_RANGE[1], 
+                                           TRACKER_RANGE[2]:TRACKER_RANGE[3]].values.tolist(), 
+                            columns=data.iloc[0, TRACKER_RANGE[2]:TRACKER_RANGE[3]].values.tolist())
+    tracker_raw.sort_values(by='Overall Time Slots', inplace=True)
+    temp = tracker_raw.iloc[:-2, :].copy()
+    temp.sort_values(by='Overall Time Slots', inplace=True)
+    tracker = tracker_raw.iloc[-2:, :].copy()
+    tracker = concat([tracker, temp], ignore_index=True)
+    # tracker.iloc[2:, :] = temp.values.tolist()
+    # tracker.reset_index(drop=True, inplace=True)
     # tracker.columns = tracker.iloc[0]
     # print(tracker.loc[:201, "Overall Time Slots"].values.tolist())
     variables['race_tracker_slots_raw'] = tracker.loc[:201, "Overall Time Slots"].values.tolist()
     variables['race_tracker_slots'].set(variables['race_tracker_slots_raw'])
+    slots_list = elements['race_tracker_slots']
+    slots_list.selection_set(0)
+    change_race_slot()
 
     for i in range(WEATHER_LENGTH):
         variables['weather'].append(get_data_frame_value(col=Z, row=i + 1))
 
     elements['race_tracker_edit_actual_weather_entry'].config(values=variables['weather'])
     elements['race_tracker_current_actual_weather_entry'].config(values=variables['weather'])
-
-    #TODO: add race data readers
 
 def download_data(event=None):
     global root, settings, variables, elements, data, tracker

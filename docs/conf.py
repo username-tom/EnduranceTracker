@@ -1,4 +1,3 @@
-SAMPLE_SPREADSHEET_ID = "1eT516P2BHNUItpuoz8_aylJNPMPgpFOp2u7DZhhgICo"
 SAMPLE_RANGE_NAME = "A1:Z200"
 MAX_DRIVER = 8
 
@@ -28,6 +27,8 @@ W = 22
 X = 23
 Y = 24
 Z = 25
+
+TRACKER_RANGE = 1, 201, D, L
 
 
 INDEX = {
@@ -79,3 +80,4 @@ def set_config(section, key, value):
 
 GEOMETRY = get_config('general', 'geometry')
 STATUS_TIMES = get_config('settings', 'times')
+SHEET_ID = get_config('settings', 'sheet_id')

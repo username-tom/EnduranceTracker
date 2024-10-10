@@ -3,6 +3,8 @@ from tkinter import *
 from tkinter import ttk
 from helpers import *
 from math import ceil
+from datetime import timedelta
+
 
 class TrackerError(Exception):
     pass
@@ -56,12 +58,13 @@ class TimeScheduler:
             self.widgets[f'label_{driver}'] = temp_label
             frame.grid_rowconfigure(2 + i, weight=1)
 
-            total_time_in_min = float(self.variables['total_time'].get()) * 60
-            stint_time_in_min = float(self.variables['theoretical_stint_time'].get().split(':')[0]) * 60
-            stints = ceil(total_time_in_min / stint_time_in_min)
-            remains = int(total_time_in_min % stint_time_in_min) / stint_time_in_min
+            total_time = self.get_delta('total_time').total_seconds()
+            total_time_in_h = ceil(total_time / 3600)
+            stint_time = self.get_delta('theoretical_stint_time').total_seconds()
+            stints = ceil(total_time / stint_time)
+            remains = int(total_time % stint_time) / stint_time
             
-            # print(total_time_in_min, stint_time_in_min, stints, remains)
+            # print(total_time, stint_time, stints, remains)
             if remains == 0:
                 weight = 1
             else:
@@ -76,18 +79,16 @@ class TimeScheduler:
             hour_frame = Frame(time_frame, background=CONTENT_BG)
             hour_frame.grid(row=0, column=0, sticky='news')
 
-            for j in range(int(self.variables['total_time'].get())):
+            for j in range(total_time_in_h):
                 temp_label = Label(hour_frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
-                                border=1, relief='flat', font=HOUR_STINT_FONT)
-                temp_label.grid(row=0, column=j, sticky='news', padx=1, pady=1) 
-                hour_frame.grid_columnconfigure(j, weight=weight)
-                if j == int(self.variables['total_time'].get()) - 1:
-                    hour_frame.grid_columnconfigure(j, weight=1)
+                                   relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
+                temp_label.grid(row=0, column=j, sticky='news', padx=0, pady=1) 
+                hour_frame.grid_columnconfigure(j, weight=1)
 
             for j in range(stints):
                 temp_label = Label(frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
-                                   border=1, relief='flat', font=HOUR_STINT_FONT)
-                temp_label.grid(row=1, column=j + 1, sticky='news', padx=1, pady=1)
+                                   relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
+                temp_label.grid(row=1, column=j + 1, sticky='news', pady=1)
 
                 temp_frame = Frame(frame, background='red')
                 if self.variables['drivers_time_slots'][driver][j] == '1':
@@ -97,7 +98,10 @@ class TimeScheduler:
                 temp_frame.grid(row=2 + i, column=j + 1, sticky='news', padx=1, pady=1)
                 self.widgets[f'frame_{driver}_{j + 1}'] = temp_frame
                 temp_frame.bind('<Button-1>', self.toggle_frame)
-                frame.grid_columnconfigure(j + 1, weight=1)
+                # frame.grid_columnconfigure(j + 1, weight=1)
+                frame.grid_columnconfigure(j + 1, weight=weight)
+                if j == stints - 1:
+                    frame.grid_columnconfigure(j + 1, weight=1)
 
     def toggle_frame(self, event=None):
         widget = event.widget
@@ -148,3 +152,12 @@ class TimeScheduler:
             except TclError:
                 pass
         self.root.update()
+
+    def get_delta(self, variable=''):
+
+        if variable not in self.variables:
+            return
+
+        return timedelta(hours=float(self.variables[variable].get().split(':')[0]), 
+                         minutes=float(self.variables[variable].get().split(':')[1]), 
+                         seconds=float(self.variables[variable].get().split(':')[2]))
