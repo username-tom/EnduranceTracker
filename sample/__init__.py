@@ -11,6 +11,7 @@ from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
 from threading import Thread
 from datetime import datetime, timedelta
+from tkcalendar import Calendar, DateEntry
 from time import sleep
 import pytz
 
@@ -239,27 +240,39 @@ def load_tab_general():
     elements['label_event_time_est'] = temp_label
 
     variables['event_time_est'] = StringVar(value='')
-    temp_entry = Entry(tab_general, textvariable=variables['event_time_est'])
+    temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=1, column=1, sticky="nsew", pady=2)
+    temp_entry.grid_columnconfigure((0, 1), weight=1)
     elements['entry_event_time_est'] = temp_entry
+    temp_date = DatePicker(temp_entry, root, settings, variables, elements)
+    elements['date_picker_event_time_est'] = temp_date
+    temp_date.entry.bind('<Return>', update_est)
 
     temp_label = Label(tab_general, text='Event Time (CST)', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=2, column=0, sticky="nsew")
     elements['label_event_time_cst'] = temp_label
 
     variables['event_time_cst'] = StringVar(value='')
-    temp_entry = Entry(tab_general, textvariable=variables['event_time_cst'])
+    temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=2, column=1, sticky="nsew", pady=2)
+    temp_entry.grid_columnconfigure((0, 1), weight=1)
     elements['entry_event_time_cst'] = temp_entry
+    temp_date = DatePicker(temp_entry, root, settings, variables, elements)
+    elements['date_picker_event_time_cst'] = temp_date
+    temp_date.entry.bind('<Return>', update_cst)
 
     temp_label = Label(tab_general, text='Event Time (MST)', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=3, column=0, sticky="nsew")
     elements['label_event_time_mst'] = temp_label
 
     variables['event_time_mst'] = StringVar(value='')
-    temp_entry = Entry(tab_general, textvariable=variables['event_time_mst'])
+    temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=3, column=1, sticky="nsew", pady=2)
+    temp_entry.grid_columnconfigure((0, 1), weight=1)
     elements['entry_event_time_mst'] = temp_entry
+    temp_date = DatePicker(temp_entry, root, settings, variables, elements)
+    elements['date_picker_event_time_mst'] = temp_date
+    temp_date.entry.bind('<Return>', update_mst)
 
     temp_label = Label(tab_general, text='Car', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=4, column=0, sticky="nsew")
@@ -717,10 +730,10 @@ def update_status():
                 session, event_time = 'Waiting for Drivers', duration - practice - qualify
                 variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             elif duration <= practice + qualify + to_green + to_start:
-                session, event_time = 'Formation Lap', duration - practice - qualify - to_green
+                session, event_time = 'Formation Lap', duration - practice - qualify
                 variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             else:
-                session, event_time = 'Race Started', duration - practice - qualify - to_green - to_start
+                session, event_time = 'Race Started', duration - practice - qualify
                 variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             if duration > practice + qualify + to_green + to_start + race_length:
                 session, event_time = 'Race Over', timedelta(0)
@@ -1037,6 +1050,17 @@ def current_pit(event=None):
     if pit_button['text'] == 'Pitting IN':
         pit_button.config(text='Pitting OUT')
 
+        to_add = [
+            variables['race_tracker_current_time'].get(),
+            variables['race_tracker_current_driver'].get(),
+            variables['race_tracker_current_theoretical_stint'].get(),
+            variables['race_tracker_current_actual_stint'].get(),
+            variables['race_tracker_current_actual_driver'].get(),
+            variables['race_tracker_current_est_chance_of_rain'].get(),
+            variables['race_tracker_current_actual_weather'].get(),
+            elements['race_tracker_current_notes_text'].get('1.0', 'end-1c')
+        ]
+
     elif pit_button['text'] == 'Pitting OUT':
         pit_button.config(text='Pitting IN')
 
@@ -1136,6 +1160,62 @@ def copy_time(event=None):
     root.clipboard_clear()
     root.clipboard_append(variables['current_event_time'].get())
     root.update()
+
+def update_est(event=None):
+    global root, settings, variables, elements
+
+    if variables['event_time_est'].get() == '':
+        return
+    
+    try:
+        est = datetime.strptime(variables['event_time_est'].get(), '%m-%d-%Y %H:%M:%S')
+    except ValueError:
+        est = datetime.strptime(variables['event_time_est'].get(), '%m-%d-%Y %I:%M:%S %p')
+    cst = est - timedelta(hours=1)
+    variables['event_time_cst'].set(cst.strftime('%m-%d-%Y %H:%M:%S %p'))
+
+    mst = cst - timedelta(hours=1)
+    variables['event_time_mst'].set(mst.strftime('%m-%d-%Y %H:%M:%S %p'))
+
+    update_values(current_event, [variables['event_time_est'].get()], 'B2')
+
+def update_cst(event=None):
+    global root, settings, variables, elements
+
+    if variables['event_time_cst'].get() == '':
+        return
+    
+    try:
+        cst = datetime.strptime(variables['event_time_cst'].get(), '%m-%d-%Y %H:%M:%S')
+    except ValueError:
+        cst = datetime.strptime(variables['event_time_cst'].get(), '%m-%d-%Y %I:%M:%S %p')
+    est = cst + timedelta(hours=1)
+    variables['event_time_est'].set(est.strftime('%m-%d-%Y %H:%M:%S %p'))
+
+    mst = cst - timedelta(hours=1)
+    variables['event_time_mst'].set(mst.strftime('%m-%d-%Y %H:%M:%S %p'))
+    
+    update_values(current_event, [variables['event_time_est'].get()], 'B2')
+
+def update_mst(event=None):
+    global root, settings, variables, elements
+
+    if variables['event_time_mst'].get() == '':
+        return
+    
+    try:
+        mst = datetime.strptime(variables['event_time_mst'].get(), '%m-%d-%Y %H:%M:%S')
+    except ValueError:
+        mst = datetime.strptime(variables['event_time_mst'].get(), '%m-%d-%Y %I:%M:%S %p')
+    cst = mst + timedelta(hours=1)
+    variables['event_time_cst'].set(cst.strftime('%m-%d-%Y %H:%M:%S %p'))
+
+    est = cst + timedelta(hours=1)
+    variables['event_time_est'].set(est.strftime('%m-%d-%Y %H:%M:%S %p'))
+
+    update_values(current_event, [variables['event_time_est'].get()], 'B2')
+
+
 
 if __name__ == "__main__":
     main()

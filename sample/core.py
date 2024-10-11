@@ -4,6 +4,7 @@ from tkinter import ttk
 from helpers import *
 from math import ceil
 from datetime import timedelta
+from tkcalendar import Calendar, DateEntry
 
 
 class TrackerError(Exception):
@@ -161,3 +162,99 @@ class TimeScheduler:
         return timedelta(hours=float(self.variables[variable].get().split(':')[0]), 
                          minutes=float(self.variables[variable].get().split(':')[1]), 
                          seconds=float(self.variables[variable].get().split(':')[2]))
+    
+
+class DatePicker:
+    def __init__(self, master, root, settings, variables, elements):
+        self.root = root
+        self.settings = settings
+        self.variables = variables
+        self.elements = elements
+        self.master = master
+        self.widgets = {}
+        self.create_widgets()
+
+    def create_widgets(self):
+        frame = Frame(self.master, background=CONTENT_BG)
+        frame.grid(row=0, column=0, sticky='news')
+        frame.grid_columnconfigure((0, 1), weight=1)
+        
+        self.entry = Entry(frame, width=20)
+        if self.master == self.elements['entry_event_time_est']:
+            self.entry.config(textvariable=self.variables['event_time_est'])
+            self.widgets['entry_var'] = self.variables['event_time_est']
+        elif self.master == self.elements['entry_event_time_cst']:
+            self.entry.config(textvariable=self.variables['event_time_cst'])
+            self.widgets['entry_var'] = self.variables['event_time_cst']
+        elif self.master == self.elements['entry_event_time_mst']:
+            self.entry.config(textvariable=self.variables['event_time_mst'])
+            self.widgets['entry_var'] = self.variables['event_time_mst']
+        else: 
+            raise TrackerError("Invalid master")
+        
+        self.entry.grid(row=0, column=0, sticky='news', padx=(0, 5))
+        self.widgets['entry'] = self.entry
+
+        self.date_picker_icon = Button(frame, text='📅', command=self.open_date_picker)
+        self.date_picker_icon.grid(row=0, column=1, sticky='news')
+        self.widgets['date_picker_icon'] = self.date_picker_icon
+
+    def open_date_picker(self):
+        top = Toplevel(self.root)
+        top.resizable(False, False)
+        top.title("Select Date and Time")
+        
+        cal = Calendar(top, selectmode='day')
+        cal.grid(column=0, row=0, padx=0, pady=0)
+        self.widgets['calendar'] = cal
+        cal.see(to_datetime(self.variables['event_time_est'].get()))
+
+        time_frame = Frame(top)
+        time_frame.grid(column=0, row=1, padx=0, pady=0)
+        self.widgets['time_frame'] = time_frame
+
+        if self.master == self.elements['entry_event_time_est']:
+            hour = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[0])
+            minute = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[1])
+            second = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[2])
+        elif self.master == self.elements['entry_event_time_cst']:
+            hour = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[0])
+            minute = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[1])
+            second = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[2])
+        elif self.master == self.elements['entry_event_time_mst']:
+            hour = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[0])
+            minute = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[1])
+            second = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[2])
+        else: 
+            raise TrackerError("Invalid master")
+        self.widgets['hour'] = hour
+        self.widgets['minute'] = minute
+        self.widgets['second'] = second
+
+        hour_entry = Entry(time_frame, textvariable=hour)
+        hour_entry.grid(row=0, column=0, padx=0, pady=0)
+        self.widgets['hour_entry'] = hour_entry
+        temp_label = Label(time_frame, text=':')
+        temp_label.grid(row=0, column=1, padx=0, pady=0)
+
+        minute_entry = Entry(time_frame, textvariable=minute)
+        minute_entry.grid(row=0, column=2, padx=0, pady=0)
+        self.widgets['minute_entry'] = minute_entry
+        temp_label = Label(time_frame, text=':')
+        temp_label.grid(row=0, column=3, padx=0, pady=0)
+
+        second_entry = Entry(time_frame, textvariable=second)
+        second_entry.grid(row=0, column=4, padx=0, pady=0)
+        self.widgets['second_entry'] = second_entry
+
+        def on_date_select():
+            selected_date = cal.selection_get()
+            hour_int = int(hour.get())
+            period = "AM" if hour_int < 12 else "PM"
+            self.widgets['entry_var'].set(f"{selected_date.strftime('%m-%d-%Y')} "
+                                          f"{hour_int:02d}:{int(minute.get()):02d}:{int(second.get()):02d} "
+                                          f"{period}")
+            top.destroy()
+
+        select_button = Button(top, text="Select", command=on_date_select)
+        select_button.grid(column=0, row=2, pady=5)
