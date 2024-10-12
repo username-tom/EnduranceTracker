@@ -684,7 +684,9 @@ def get_delta(variable=''):
     global root, settings, variables, elements
 
     if variable not in variables:
-        return
+        return timedelta(hours=float(variable.split(':')[0]),
+                         minutes=float(variable.split(':')[1]),
+                         seconds=float(variable.split(':')[2]))
 
     return timedelta(hours=float(variables[variable].get().split(':')[0]), 
                      minutes=float(variables[variable].get().split(':')[1]), 
@@ -692,6 +694,9 @@ def get_delta(variable=''):
 
 def get_duration(variable='event_time_est', tz_from='US/Eastern', tz_to='GMT'):
     global root, settings, variables, elements
+
+    if variable not in variables:
+        return
 
     return datetime.now(pytz.utc) - tz_diff(variables[variable].get(), tz_from, tz_to)
 
@@ -976,6 +981,10 @@ def current_add(event=None):
         variables['race_tracker_current_actual_weather'].get(),
         elements['race_tracker_current_notes_text'].get('1.0', 'end-1c')
     ]
+
+    add_to_tracker(to_add)
+
+def add_to_tracker(to_add):
     tracker.loc[len(tracker.index)] = to_add
     temp = tracker.iloc[2:, :].copy()
     temp.sort_values(by='Overall Time Slots', inplace=True)
@@ -1050,19 +1059,41 @@ def current_pit(event=None):
     if pit_button['text'] == 'Pitting IN':
         pit_button.config(text='Pitting OUT')
 
+        # add pit in data
         to_add = [
-            variables['race_tracker_current_time'].get(),
+            variables['current_event_time'].get(),
             variables['race_tracker_current_driver'].get(),
             variables['race_tracker_current_theoretical_stint'].get(),
             variables['race_tracker_current_actual_stint'].get(),
             variables['race_tracker_current_actual_driver'].get(),
             variables['race_tracker_current_est_chance_of_rain'].get(),
             variables['race_tracker_current_actual_weather'].get(),
-            elements['race_tracker_current_notes_text'].get('1.0', 'end-1c')
+            'PITTING IN'
         ]
+
+        add_to_tracker(to_add)
 
     elif pit_button['text'] == 'Pitting OUT':
         pit_button.config(text='Pitting IN')
+
+        # add pit out data
+        to_add = [
+            variables['current_event_time'].get(),
+            variables['race_tracker_current_driver'].get(),
+            variables['race_tracker_current_theoretical_stint'].get(),
+            variables['race_tracker_current_actual_stint'].get(),
+            variables['race_tracker_current_actual_driver'].get(),
+            variables['race_tracker_current_est_chance_of_rain'].get(),
+            variables['race_tracker_current_actual_weather'].get(),
+            'PITTING OUT'
+        ]
+
+        add_to_tracker(to_add)
+
+        variables['race_tracker_current_actual_stint'].set(
+            int(variables['race_tracker_current_actual_stint'].get()) + 1)
+
+    calculate_avg_stint_time()
 
 def current_copy(event=None):
     global root, settings, variables, elements, tracker, current_event
@@ -1146,6 +1177,32 @@ def update_variables_from_data_frame():
 
     elements['race_tracker_edit_actual_weather_entry'].config(values=variables['weather'])
     elements['race_tracker_current_actual_weather_entry'].config(values=variables['weather'])
+
+    calculate_avg_stint_time()
+
+def calculate_avg_stint_time():
+    global root, settings, variables, elements, data, tracker
+
+    variables['stint_time_raw'] = []
+    pits = tracker.loc[(tracker['Notes'] == 'PITTING IN') | (tracker['Notes'] == 'PITTING OUT')]
+    if pits.empty:
+        return
+
+    total = 0
+    prev_pit = 0
+    for i in range(len(pits)):
+        if pits.iloc[i, 7] == 'PITTING IN':
+            total += 1
+            if int(pits.iloc[i, 3]) == total:
+                if pits.iloc[i + 1, 7] == 'PITTING OUT':
+                    if prev_pit == 0:
+                        variables['stint_time_raw'].append(get_delta(pits.iloc[i + 1, 0]))
+                    else:
+                        variables['stint_time_raw'].append(get_delta(pits.iloc[i + 1, 0]) - get_delta(pits.iloc[prev_pit, 0]))
+                    prev_pit = i + i
+    
+    variables['average_stint_time'].set(str(sum(variables['stint_time_raw'], timedelta(0)) / len(variables['stint_time_raw'])).split('.')[0])
+
 
 def download_data(event=None):
     global root, settings, variables, elements, data, tracker
