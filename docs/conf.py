@@ -60,6 +60,19 @@ INDEX = {
 WEATHER_LENGTH = 11
 STATUS_BG = "#f7d6ff"
 CONTENT_BG = "#fff9d6"
+STATUS_BG_DARK = "#0A0A0A"
+CONTENT_BG_DARK = "#202020"
+DARK_FG = 'white'
+ENTRY_BG = 'white'
+ENTRY_FG = 'black'
+ENTRY_BG_DARK = '#1A1A1A'
+ENTRY_FG_DARK = 'white'
+LABEL_FG = 'black'
+LABEL_FG_DARK = 'white'
+BUTTON_BG = '#f0f0f0'  # A commonly used light grey color for button backgrounds
+BUTTON_FG = 'black'
+BUTTON_BG_DARK = '#0A0A0A'
+BUTTON_FG_DARK = 'white'
 HOUR_STINT_FONT = 'TkFixedFont'
 
 import configparser as cp
@@ -81,3 +94,4 @@ def set_config(section, key, value):
 GEOMETRY = get_config('general', 'geometry')
 STATUS_TIMES = get_config('settings', 'times')
 SHEET_ID = get_config('settings', 'sheet_id')
+DARK_MODE = bool(get_config('general', 'dark_mode'))

@@ -41,7 +41,7 @@ def main():
     root.mainloop()
 
 def loading():
-    global root, settings, variables, elements, data
+    global root, settings, variables, elements, data, DARK_MODE
 
     s = ttk.Style()
     s.configure("TNotebook", 
@@ -59,6 +59,8 @@ def loading():
     main_background.grid_columnconfigure(1, weight=4)
     main_background.grid_rowconfigure(0, weight=1)
 
+    settings['dark_mode'] = BooleanVar(value=DARK_MODE)
+
     main_menu = Menu(root)
     # root.config(menu=main_menu)
     elements['main_menu'] = main_menu
@@ -73,6 +75,8 @@ def loading():
     main_content.grid(row=0, column=1, sticky="nsew")
     elements['main_content'] = main_content
     load_main_content()
+
+    init_dark_mode()
 
     root.update()
 
@@ -89,10 +93,16 @@ def load_menu():
     menu_app = Menu(elements['main_menu'])
     elements['main_menu'].add_cascade(label="App", menu=menu_app)
     elements['menu_app'] = menu_app
-    elements['menu_app'].add_command(label="Change Spreadsheet", command=change_spreadsheet)
-    elements['menu_app'].add_command(label="Upload", command=lambda: update_values(current_event, data))
-    elements['menu_app'].add_command(label="Download", command=download_data)
+    elements['menu_app'].add_checkbutton(label="Dark Mode", command=toggle_dark_mode, variable=settings['dark_mode'])
     elements['menu_app'].add_command(label="Exit", command=on_closing)
+
+    menu_data = Menu(elements['main_menu'])
+    elements['main_menu'].add_cascade(label="Data", menu=menu_data)
+    elements['menu_data'] = menu_data
+    elements['menu_data'].add_command(label="Change Spreadsheet", command=change_spreadsheet)
+    elements['menu_data'].add_command(label="Upload", command=lambda: update_values(current_event, data))
+    elements['menu_data'].add_command(label="Download", command=download_data)
+
 
 def load_status():
     global root, settings, variables, elements
@@ -1271,6 +1281,129 @@ def update_mst(event=None):
     variables['event_time_est'].set(est.strftime('%m-%d-%Y %H:%M:%S %p'))
 
     update_values(current_event, [variables['event_time_est'].get()], 'B2')
+
+def dark_mode():
+    global root, settings, variables, elements, \
+            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
+            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
+            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+    
+    settings['dark_mode'].set('True')
+    elements['status'].config(bg=STATUS_BG_DARK)
+    elements['main_content'].config(bg=CONTENT_BG_DARK)
+    s = ttk.Style()
+    s.configure("TCombobox", 
+                background=ENTRY_BG_DARK,
+                foreground=ENTRY_FG_DARK)
+    s.configure("TNotebook", 
+                background=CONTENT_BG_DARK,
+                foreground=LABEL_FG_DARK)
+    s.configure("TNotebook.Tab",
+                background=BUTTON_BG_DARK,
+                foreground=LABEL_FG_DARK)
+            
+    for i in elements:
+        element = elements[i]
+        if isinstance(element, Label):
+            element.config(bg=CONTENT_BG_DARK, fg='white')
+        elif isinstance(element, ttk.Separator):
+            element.config(bg=CONTENT_BG_DARK)
+        elif isinstance(element, Entry):
+            element.config(background=ENTRY_BG_DARK, foreground=ENTRY_FG_DARK)
+        elif isinstance(element, Text):
+            element.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+        elif isinstance(element, Button):
+            element.config(bg=BUTTON_BG_DARK, fg=BUTTON_FG_DARK)
+        elif isinstance(element, Listbox):
+            element.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+        elif isinstance(element, Scrollbar):
+            pass
+            
+    for i in elements['status'].winfo_children():
+        # element = elements[i]
+        if isinstance(i, Label):
+            i.config(bg=STATUS_BG_DARK, fg='white')
+        # elif isinstance(i, ttk.Separator):
+        #     i.config(bg=STATUS_BG)
+
+    for i in elements['main_notebook'].winfo_children():
+        i.config(bg=CONTENT_BG_DARK)
+
+def light_mode():
+    global root, settings, variables, elements, \
+            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
+            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
+            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+
+    settings['dark_mode'].set('False')
+    elements['status'].config(bg=STATUS_BG)
+    elements['main_content'].config(bg=CONTENT_BG)
+    s = ttk.Style()
+    s.configure("TCombobox", 
+                background=ENTRY_BG,
+                foreground=ENTRY_FG)
+    s.configure("TNotebook", 
+                background=CONTENT_BG,
+                foreground=LABEL_FG)
+    s.configure("TNotebook.Tab",
+                background=BUTTON_BG,
+                foreground=LABEL_FG)
+            
+    for i in elements:
+        element = elements[i]
+        if isinstance(element, Label):
+            element.config(bg=CONTENT_BG, fg='black')
+        elif isinstance(element, ttk.Separator):
+            element.config(bg=CONTENT_BG)
+        elif isinstance(element, Entry):
+            element.config(background=ENTRY_BG, foreground=ENTRY_FG)
+        elif isinstance(element, Text):
+            element.config(bg=ENTRY_BG, fg=ENTRY_FG)
+        elif isinstance(element, Button):
+            element.config(bg=BUTTON_BG, fg=BUTTON_FG)
+        elif isinstance(element, Listbox):
+            element.config(bg=ENTRY_BG, fg=ENTRY_FG)
+            
+    for i in elements['status'].winfo_children():
+        # element = elements[i]
+        if isinstance(i, Label):
+            i.config(bg=STATUS_BG, fg='black')
+        # elif isinstance(i, ttk.Separator):
+        #     i.config(bg=STATUS_BG)
+
+    for i in elements['main_notebook'].winfo_children():
+        i.config(bg=CONTENT_BG)
+
+def init_dark_mode():
+    global root, settings, variables, elements, \
+            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
+            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
+            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+
+    if not DARK_MODE:
+        light_mode()
+
+    else:
+        dark_mode()
+        
+    root.update()
+
+def toggle_dark_mode(event=None):
+    global root, settings, variables, elements, \
+            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
+            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
+            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+
+    if DARK_MODE:
+        DARK_MODE = False
+        dark_mode()
+
+        
+    else:
+        DARK_MODE = True
+        light_mode()
+        
+    root.update()
 
 
 
