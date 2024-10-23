@@ -41,14 +41,72 @@ def main():
     root.mainloop()
 
 def loading():
-    global root, settings, variables, elements, data, DARK_MODE
+    global root, settings, variables, elements, data, \
+            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
+            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
+            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
 
     s = ttk.Style()
-    s.configure("TNotebook", 
-                tabposition="sw", 
-                background=CONTENT_BG)
-    s.configure("TNotebook.Tab",
-                padding=[10, 0])
+    # s.configure("TNotebook", 
+    #             tabposition="sw", 
+    #             background=CONTENT_BG)
+    # s.configure("TNotebook.Tab",
+    #             padding=[10, 0])
+    
+    s.theme_create("light", parent='alt', settings={
+        "TNotebook": {"configure": {"background": CONTENT_BG,
+                                    "tabposition": "sw"}},
+        "TNotebook.Tab": {
+            "configure": {"padding": [20, 10], 
+                          "background": CONTENT_BG, 
+                          "foreground": LABEL_FG},
+            "map": {"background": [("selected", STATUS_BG)],
+                    "foreground": [("selected", LABEL_FG)]},
+                    "expand": [("selected", [1, 0, 1, 0])]},
+        "TComboBox": {
+            "configure": {'fieldbackground': ENTRY_BG,
+                          'foreground': ENTRY_FG,
+                          'selectbackground': '',
+                          'selectforeground': ENTRY_FG,
+                          'bordercolor': '',
+                          'background': ''},
+            "map": {"background": [("active", ENTRY_BG),
+                                   ("selected", ENTRY_BG),
+                                   ("!disabled", ENTRY_BG)],
+                    "foreground": [("active", ENTRY_FG),
+                                   ("selected", ENTRY_FG),
+                                   ("!disabled", ENTRY_FG)]}},
+        })
+    
+    s.theme_create("dark", parent='alt', settings={
+        "TNotebook": {"configure": {"background": CONTENT_BG_DARK,
+                                    "tabposition": "sw"}},
+        "TNotebook.Tab": {
+            "configure": {"padding": [20, 10], 
+                          "background": CONTENT_BG_DARK, 
+                          "foreground": LABEL_FG_DARK},
+            "map": {"background": [("selected", STATUS_BG_DARK)],
+                    "foreground": [("selected", LABEL_FG_DARK)]},
+                    "expand": [("selected", [1, 0, 1, 0])]},
+        "TComboBox": {
+            "configure": {'fieldbackground': ENTRY_BG_DARK,
+                          'foreground': ENTRY_FG,
+                          'selectbackground': '',
+                          'selectforeground': ENTRY_FG_DARK,
+                          'bordercolor': '',
+                          'background': ''},
+            "map": {"background": [("active", ENTRY_BG_DARK),
+                                   ("selected", ENTRY_BG_DARK),
+                                   ("!disabled", ENTRY_BG_DARK)],
+                    "foreground": [("active", ENTRY_FG_DARK),
+                                   ("selected", ENTRY_FG_DARK),
+                                   ("!disabled", ENTRY_FG_DARK)]}}
+        })
+    
+    if DARK_MODE:
+        s.theme_use("dark")
+    else:
+        s.theme_use("light")
     
     main_background = Frame(root, bg="white")
     root.grid_rowconfigure(0, weight=1)
@@ -76,12 +134,11 @@ def loading():
     elements['main_content'] = main_content
     load_main_content()
 
-    init_dark_mode()
-
-    root.update()
+    # root.update()
 
     login()
     update_sheets_list()
+    init_dark_mode()
     start_status()
 
 
@@ -252,7 +309,8 @@ def load_tab_general():
     variables['event_time_est'] = StringVar(value='')
     temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=1, column=1, sticky="nsew", pady=2)
-    temp_entry.grid_columnconfigure((0, 1), weight=1)
+    temp_entry.grid_columnconfigure(0, weight=1)
+    temp_entry.grid_rowconfigure(0, weight=1)
     elements['entry_event_time_est'] = temp_entry
     temp_date = DatePicker(temp_entry, root, settings, variables, elements)
     elements['date_picker_event_time_est'] = temp_date
@@ -265,7 +323,8 @@ def load_tab_general():
     variables['event_time_cst'] = StringVar(value='')
     temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=2, column=1, sticky="nsew", pady=2)
-    temp_entry.grid_columnconfigure((0, 1), weight=1)
+    temp_entry.grid_columnconfigure(0, weight=1)
+    temp_entry.grid_rowconfigure(0, weight=1)
     elements['entry_event_time_cst'] = temp_entry
     temp_date = DatePicker(temp_entry, root, settings, variables, elements)
     elements['date_picker_event_time_cst'] = temp_date
@@ -278,7 +337,8 @@ def load_tab_general():
     variables['event_time_mst'] = StringVar(value='')
     temp_entry = Frame(tab_general, bg=CONTENT_BG)
     temp_entry.grid(row=3, column=1, sticky="nsew", pady=2)
-    temp_entry.grid_columnconfigure((0, 1), weight=1)
+    temp_entry.grid_columnconfigure(0, weight=1)
+    temp_entry.grid_rowconfigure(0, weight=1)
     elements['entry_event_time_mst'] = temp_entry
     temp_date = DatePicker(temp_entry, root, settings, variables, elements)
     elements['date_picker_event_time_mst'] = temp_date
@@ -495,6 +555,7 @@ def load_tab_race():
     edit_frame = LabelFrame(input_frame, bg=CONTENT_BG, labelwidget=temp_label)
     edit_frame.grid(row=0, column=0, rowspan=5, sticky="nsew")
     elements['race_tracker_edit_frame'] = edit_frame
+    elements['race_tracker_edit_frame_label'] = temp_label
     for i in range(7):
         edit_frame.grid_rowconfigure(i, weight=1)
     edit_frame.grid_columnconfigure((0, 1), weight=1)
@@ -504,6 +565,7 @@ def load_tab_race():
                                labelwidget=temp_label)
     current_frame.grid(row=7, column=0, rowspan=7, sticky="nsew")
     elements['race_tracker_current_frame'] = current_frame
+    elements['race_tracker_current_frame_label'] = temp_label
     for i in range(8):
         current_frame.grid_rowconfigure(i, weight=1)
     current_frame.grid_columnconfigure((0, 1), weight=1)
@@ -559,7 +621,8 @@ def load_tab_race():
     elements['race_tracker_edit_actual_weather_label'] = temp_label
 
     variables['race_tracker_edit_actual_weather'] = StringVar(value='')
-    temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'])
+    temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'],
+                              state="readonly")
     temp_entry.grid(row=5, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_edit_actual_weather_entry'] = temp_entry
 
@@ -575,16 +638,20 @@ def load_tab_race():
     temp_frame.grid_columnconfigure(0, weight = 1)
     temp_frame.grid_rowconfigure(0, weight = 1)
     temp_frame.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=5, padx=10)
+    elements['race_tracker_edit_notes_text_frame'] = temp_frame
     elements['race_tracker_edit_notes_text'] = temp_entry
 
     temp_button = Button(input_frame, text="Update", command=edit_update)
     temp_button.grid(row=1, column=1, sticky="nsew", padx=20, pady=20)
+    elements['race_tracker_edit_update_button'] = temp_button
 
     temp_button = Button(input_frame, text="Reset", command=edit_reset)
     temp_button.grid(row=2, column=1, sticky="nsew", padx=20, pady=20)
+    elements['race_tracker_edit_reset_button'] = temp_button
 
     temp_button = Button(input_frame, text="Delete", command=edit_delete)
     temp_button.grid(row=3, column=1, sticky="nsew", padx=20, pady=20)
+    elements['race_tracker_edit_delete_button'] = temp_button
 
     # current frame
     temp_label = Label(current_frame, text='Race Time', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
@@ -646,7 +713,8 @@ def load_tab_race():
     elements['race_tracker_current_actual_weather_label'] = temp_label
 
     variables['race_tracker_current_actual_weather'] = StringVar(value='')
-    temp_entry = ttk.Combobox(current_frame, textvariable=variables['race_tracker_current_actual_weather'])
+    temp_entry = ttk.Combobox(current_frame, textvariable=variables['race_tracker_current_actual_weather'],
+                              state="readonly")
     temp_entry.grid(row=6, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_current_actual_weather_entry'] = temp_entry
 
@@ -663,9 +731,11 @@ def load_tab_race():
     temp_frame.grid_rowconfigure(0, weight = 1)
     temp_frame.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=5, padx=10)
     elements['race_tracker_current_notes_text'] = temp_entry
+    elements['race_tracker_current_notes_text_frame'] = temp_frame
 
     temp_button = Button(input_frame, text="Add", command=current_add)
     temp_button.grid(row=7, column=1, sticky="nsew", padx=20, pady=10)
+    elements['add_button'] = temp_button
 
     temp_button = Button(input_frame, text="Practice", command=current_sessions)
     temp_button.grid(row=8, column=1, sticky="nsew", padx=20, pady=10)
@@ -681,6 +751,7 @@ def load_tab_race():
 
     temp_button = Button(input_frame, text='Copy from Above', command=current_copy)
     temp_button.grid(row=11, column=1, sticky="nsew", padx=20, pady=10)
+    elements['copy_button'] = temp_button
 
 
 def start_status():
@@ -1292,15 +1363,18 @@ def dark_mode():
     elements['status'].config(bg=STATUS_BG_DARK)
     elements['main_content'].config(bg=CONTENT_BG_DARK)
     s = ttk.Style()
-    s.configure("TCombobox", 
-                background=ENTRY_BG_DARK,
-                foreground=ENTRY_FG_DARK)
-    s.configure("TNotebook", 
-                background=CONTENT_BG_DARK,
-                foreground=LABEL_FG_DARK)
-    s.configure("TNotebook.Tab",
-                background=BUTTON_BG_DARK,
-                foreground=LABEL_FG_DARK)
+    s.theme_use("dark")
+
+    elements['plan_content'].widgets['label_hour'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['plan_content'].widgets['label_stints'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['actual_content'].widgets['label_hour'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['actual_content'].widgets['label_stints'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    
+    for i in ['date_picker_event_time_est', 'date_picker_event_time_cst', 'date_picker_event_time_mst']:
+        elements[i].master.config(bg=CONTENT_BG_DARK)
+        elements[i].widgets['main_frame'].config(bg=ENTRY_BG_DARK)
+        elements[i].entry.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+        elements[i].date_picker_icon.config(bg=ENTRY_BG_DARK, fg=BUTTON_FG_DARK)
             
     for i in elements:
         element = elements[i]
@@ -1318,7 +1392,13 @@ def dark_mode():
             element.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
         elif isinstance(element, Scrollbar):
             pass
+        elif isinstance(element, LabelFrame):
+            element.config(bg=CONTENT_BG_DARK)
+        elif isinstance(element, Frame):
+            element.config(bg=CONTENT_BG_DARK)
             
+    elements['status'].config(bg=STATUS_BG_DARK)
+    
     for i in elements['status'].winfo_children():
         # element = elements[i]
         if isinstance(i, Label):
@@ -1338,16 +1418,20 @@ def light_mode():
     settings['dark_mode'].set('False')
     elements['status'].config(bg=STATUS_BG)
     elements['main_content'].config(bg=CONTENT_BG)
+
     s = ttk.Style()
-    s.configure("TCombobox", 
-                background=ENTRY_BG,
-                foreground=ENTRY_FG)
-    s.configure("TNotebook", 
-                background=CONTENT_BG,
-                foreground=LABEL_FG)
-    s.configure("TNotebook.Tab",
-                background=BUTTON_BG,
-                foreground=LABEL_FG)
+    s.theme_use("light")
+
+    elements['plan_content'].widgets['label_hour'].config(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['plan_content'].widgets['label_stints'].config(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['actual_content'].widgets['label_hour'].config(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['actual_content'].widgets['label_stints'].config(fg=LABEL_FG, bg=CONTENT_BG)
+    
+    for i in ['date_picker_event_time_est', 'date_picker_event_time_cst', 'date_picker_event_time_mst']:
+        elements[i].master.config(bg=CONTENT_BG)
+        elements[i].widgets['main_frame'].config(bg=ENTRY_BG)
+        elements[i].entry.config(bg=ENTRY_BG, fg=ENTRY_FG)
+        elements[i].date_picker_icon.config(bg=ENTRY_BG, fg=BUTTON_FG)
             
     for i in elements:
         element = elements[i]
@@ -1363,6 +1447,14 @@ def light_mode():
             element.config(bg=BUTTON_BG, fg=BUTTON_FG)
         elif isinstance(element, Listbox):
             element.config(bg=ENTRY_BG, fg=ENTRY_FG)
+        elif isinstance(element, Scrollbar):
+            pass
+        elif isinstance(element, LabelFrame):
+            element.config(bg=CONTENT_BG)
+        elif isinstance(element, Frame):
+            element.config(bg=CONTENT_BG)
+
+    elements['status'].config(bg=STATUS_BG)
             
     for i in elements['status'].winfo_children():
         # element = elements[i]
@@ -1375,10 +1467,7 @@ def light_mode():
         i.config(bg=CONTENT_BG)
 
 def init_dark_mode():
-    global root, settings, variables, elements, \
-            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
-            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
-            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+    global root, settings, variables, elements, DARK_MODE
 
     if not DARK_MODE:
         light_mode()
@@ -1389,19 +1478,18 @@ def init_dark_mode():
     root.update()
 
 def toggle_dark_mode(event=None):
-    global root, settings, variables, elements, \
-            DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
-            STATUS_BG_DARK, CONTENT_BG_DARK, ENTRY_BG_DARK, \
-            BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
+    global root, settings, variables, elements, DARK_MODE
 
     if DARK_MODE:
         DARK_MODE = False
-        dark_mode()
+        settings['dark_mode'].set('False')
+        light_mode()
 
         
     else:
         DARK_MODE = True
-        light_mode()
+        settings['dark_mode'].set('True')
+        dark_mode()
         
     root.update()
 

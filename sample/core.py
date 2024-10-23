@@ -175,11 +175,13 @@ class DatePicker:
         self.create_widgets()
 
     def create_widgets(self):
-        frame = Frame(self.master, background=CONTENT_BG)
+        frame = Frame(self.master, background=CONTENT_BG, relief='sunken', borderwidth=1)
         frame.grid(row=0, column=0, sticky='news')
-        frame.grid_columnconfigure((0, 1), weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        self.widgets['main_frame'] = frame
         
-        self.entry = Entry(frame, width=20)
+        self.entry = Entry(frame, width=20, border=0, borderwidth=0, relief='flat')
         if self.master == self.elements['entry_event_time_est']:
             self.entry.config(textvariable=self.variables['event_time_est'])
             self.widgets['entry_var'] = self.variables['event_time_est']
@@ -195,7 +197,8 @@ class DatePicker:
         self.entry.grid(row=0, column=0, sticky='news', padx=(0, 5))
         self.widgets['entry'] = self.entry
 
-        self.date_picker_icon = Button(frame, text='📅', command=self.open_date_picker)
+        self.date_picker_icon = Button(frame, text='📅', command=self.open_date_picker,
+                                        border=0, borderwidth=0, relief='flat')
         self.date_picker_icon.grid(row=0, column=1, sticky='news')
         self.widgets['date_picker_icon'] = self.date_picker_icon
 
