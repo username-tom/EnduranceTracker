@@ -44,17 +44,17 @@ class TimeScheduler:
             child.destroy()
 
         self.root.update()
-        temp_label = Label(frame, text='Hour', background=CONTENT_BG)
+        temp_label = Label(frame, text='Hour', background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
         temp_label.grid(row=0, column=0, sticky='news')
         self.widgets['label_hour'] = temp_label
         # print(self.variables['drivers_time_slots'])
 
-        temp_label = Label(frame, text='Stints', background=CONTENT_BG)
+        temp_label = Label(frame, text='Stints', background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
         temp_label.grid(row=1, column=0, sticky='news')
         self.widgets['label_stints'] = temp_label
 
         for i, driver in enumerate(self.variables['drivers_raw']):
-            temp_label = Label(frame, text=driver, background=CONTENT_BG)
+            temp_label = Label(frame, text=driver, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
             temp_label.grid(row=2 + i, column=0, sticky='news')
             self.widgets[f'label_{driver}'] = temp_label
             frame.grid_rowconfigure(2 + i, weight=1)
@@ -72,22 +72,22 @@ class TimeScheduler:
                 weight = ceil(1 / remains)
             # print(weight)
 
-            time_frame = Frame(frame, background=CONTENT_BG)
+            time_frame = Frame(frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
             time_frame.grid(row=0, column=1, sticky='news', padx=1, pady=1, 
                             columnspan=stints)
             time_frame.grid_columnconfigure(0, weight=1)
             
-            hour_frame = Frame(time_frame, background=CONTENT_BG)
+            hour_frame = Frame(time_frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
             hour_frame.grid(row=0, column=0, sticky='news')
 
             for j in range(total_time_in_h):
-                temp_label = Label(hour_frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
+                temp_label = Label(hour_frame, text=f"{j + 1:02d}", background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
                                    relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
                 temp_label.grid(row=0, column=j, sticky='news', padx=0, pady=1) 
                 hour_frame.grid_columnconfigure(j, weight=1)
 
             for j in range(stints):
-                temp_label = Label(frame, text=f"{j + 1:02d}", background=CONTENT_BG, 
+                temp_label = Label(frame, text=f"{j + 1:02d}", background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
                                    relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
                 temp_label.grid(row=1, column=j + 1, sticky='news', pady=1)
 
@@ -156,12 +156,12 @@ class TimeScheduler:
 
     def get_delta(self, variable=''):
 
-        if variable not in self.variables:
+        if f'{variable}_h' not in self.variables:
             return
 
-        return timedelta(hours=float(self.variables[variable].get().split(':')[0]), 
-                         minutes=float(self.variables[variable].get().split(':')[1]), 
-                         seconds=float(self.variables[variable].get().split(':')[2]))
+        return timedelta(hours=float(self.variables[f'{variable}_h'].get()), 
+                         minutes=float(self.variables[f'{variable}_m'].get()), 
+                         seconds=float(self.variables[f'{variable}_s'].get()))
     
 
 class DatePicker:
@@ -181,7 +181,7 @@ class DatePicker:
         frame.grid_rowconfigure(0, weight=1)
         self.widgets['main_frame'] = frame
         
-        self.entry = Entry(frame, width=20, border=0, borderwidth=0, relief='flat')
+        self.entry = Entry(frame, width=20, border=0, borderwidth=0, relief='flat', justify='center')
         if self.master == self.elements['entry_event_time_est']:
             self.entry.config(textvariable=self.variables['event_time_est'])
             self.widgets['entry_var'] = self.variables['event_time_est']

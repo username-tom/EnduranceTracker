@@ -25,7 +25,7 @@ import numpy as np
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 creds = None
-data = {}
+data = DataFrame()
 
 def login():
     global creds
@@ -64,10 +64,10 @@ def get_sheets():
             messagebox.showerror("Error", "No sheets found.")
             return
 
-        to_return = []
+        to_return = {}
         for sheet in sheets:
             # print(sheet.get('properties', {}).get('title', ''))
-            to_return.append(sheet.get('properties', {}).get('title', ''))
+            to_return[sheet.get('properties', {}).get('title', '')] = sheet.get('properties', {}).get('sheetId', '')
         # print(to_return)
         return to_return
     except HttpError as err:
@@ -194,6 +194,39 @@ def add_event(name=''):
 
         update_data_frame_value(0, 1, value=name)
         update_values(name, data)
+
+def delete_event(name=''):
+    global creds
+
+    if name == '':
+        messagebox.showerror("Error", "Event name is empty")
+        return
+    
+    if creds is None:
+        messagebox.showerror("Error", "Credentials is None")
+        return
+    
+    try:
+        service = build("sheets", "v4", credentials=creds)
+
+        body = {
+            "requests":{
+                "deleteSheet":{
+                    "sheetId":name
+                }
+            }
+        }
+
+        # Call the Sheets API
+        sheet = service.spreadsheets()
+        result = (
+            sheet.batchUpdate(spreadsheetId=SHEET_ID, body=body)
+            .execute()
+        )
+    except HttpError as err:
+        messagebox.showerror("Failed to delete event", err)
+    else:
+        print("Event deleted")
 
 
 def update_data_frame_value(row=0, col=0, index='', value=None):
