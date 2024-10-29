@@ -45,17 +45,17 @@ class TimeScheduler:
 
         self.root.update()
         temp_label = Label(frame, text='Hour', background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-        temp_label.grid(row=0, column=0, sticky='news')
+        temp_label.grid(row=0, column=0, sticky='news', padx='0 5')
         self.widgets['label_hour'] = temp_label
         # print(self.variables['drivers_time_slots'])
 
         temp_label = Label(frame, text='Stints', background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-        temp_label.grid(row=1, column=0, sticky='news')
+        temp_label.grid(row=1, column=0, sticky='news', padx='0 5')
         self.widgets['label_stints'] = temp_label
 
         for i, driver in enumerate(self.variables['drivers_raw']):
             temp_label = Label(frame, text=driver, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-            temp_label.grid(row=2 + i, column=0, sticky='news')
+            temp_label.grid(row=2 + i, column=0, sticky='news', padx='0 5')
             self.widgets[f'label_{driver}'] = temp_label
             frame.grid_rowconfigure(2 + i, weight=1)
 
@@ -73,23 +73,39 @@ class TimeScheduler:
             # print(weight)
 
             time_frame = Frame(frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-            time_frame.grid(row=0, column=1, sticky='news', padx=1, pady=1, 
+            time_frame.grid(row=0, column=1, sticky='news', padx=0, pady=0, 
                             columnspan=stints)
             time_frame.grid_columnconfigure(0, weight=1)
             
-            hour_frame = Frame(time_frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-            hour_frame.grid(row=0, column=0, sticky='news')
+            # hour_frame = Frame(time_frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
+            # hour_frame.grid(row=0, column=0, sticky='news')
 
             for j in range(total_time_in_h):
-                temp_label = Label(hour_frame, text=f"{j + 1:02d}", background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
-                                   relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
-                temp_label.grid(row=0, column=j, sticky='news', padx=0, pady=1) 
-                hour_frame.grid_columnconfigure(j, weight=1)
+                temp_frame = Frame(time_frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                temp_frame.grid(row=0, column=j, sticky='news', padx=0, pady=0)
+                temp_frame.grid_columnconfigure(0, weight=1)
+                temp_frame.grid_rowconfigure(0, weight=1)
+                self.widgets[f'frame_{driver}_h_{j + 1}'] = temp_frame
+
+                temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                   background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                   font=HOUR_STINT_FONT)
+                temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='0 1') 
+                self.widgets[f'label_{driver}_h_{j + 1}'] = temp_label
+                time_frame.grid_columnconfigure(j, weight=1)
 
             for j in range(stints):
-                temp_label = Label(frame, text=f"{j + 1:02d}", background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
-                                   relief='solid', font=HOUR_STINT_FONT, borderwidth=2)
-                temp_label.grid(row=1, column=j + 1, sticky='news', pady=1)
+                temp_frame = Frame(frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                temp_frame.grid(row=1, column=j + 1, sticky='news', padx=0, pady=0)
+                temp_frame.grid_columnconfigure(0, weight=1)
+                temp_frame.grid_rowconfigure(0, weight=1)
+                self.widgets[f'frame_{driver}_s_{j + 1}'] = temp_frame
+
+                temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                   background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                   font=HOUR_STINT_FONT)
+                temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='1 0')
+                self.widgets[f'label_{driver}_s_{j + 1}'] = temp_label
 
                 temp_frame = Frame(frame, background='red')
                 if self.variables['drivers_time_slots'][driver][j] == '1':

@@ -272,7 +272,7 @@ def load_tab_home():
     temp_frame.grid_rowconfigure(0, weight=1)
     elements['event_frame'] = temp_frame
 
-    variables['all_events_raw'] = []
+    variables['all_events_raw'] = {}
     variables['all_events'] = StringVar(value=variables['all_events_raw'])
     temp_listbox = Listbox(temp_frame, 
                            height=25, 
@@ -294,7 +294,7 @@ def load_tab_home():
     temp_button.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
     elements['add_event_button'] = temp_button
 
-    temp_button = Button(tab_home, text="Delete Event", command=delete_event)
+    temp_button = Button(tab_home, text="Delete Event", command=delete_event_popup)
     temp_button.grid(row=2, column=1, sticky="nsew", padx=10, pady=5)
     elements['delete_event_button'] = temp_button
 
@@ -318,6 +318,7 @@ def load_tab_general():
     temp_entry = Entry(tab_general, textvariable=variables['event'], justify='center', insertbackground='white')
     temp_entry.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['entry_event_name'] = temp_entry
+    temp_entry.bind('<Return>', update_event_name)
 
     temp_label = Label(tab_general, text='Event Time (EST)', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=1, column=0, sticky="nsew")
@@ -369,6 +370,7 @@ def load_tab_general():
     temp_entry = Entry(tab_general, textvariable=variables['car'], justify='center', insertbackground='black')
     temp_entry.grid(row=4, column=1, sticky="nsew", pady=2)
     elements['entry_car'] = temp_entry
+    temp_entry.bind('<Return>', update_car)
 
     temp_label = Label(tab_general, text='Total Time', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=5, column=0, sticky="nsew")
@@ -385,18 +387,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['total_time_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_total_time_h'] = temp_entry
+    temp_entry.bind('<Return>', update_total_time)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['total_time_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['total_time_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_total_time_m'] = temp_entry
+    temp_entry.bind('<Return>', update_total_time)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['total_time_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['total_time_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_total_time_s'] = temp_entry
+    temp_entry.bind('<Return>', update_total_time)
 
     temp_label = Label(tab_general, text='Current Position', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=6, column=0, sticky="nsew")
@@ -406,6 +411,7 @@ def load_tab_general():
     temp_entry = Entry(tab_general, textvariable=variables['current_position'], justify='center', insertbackground='black')
     temp_entry.grid(row=6, column=1, sticky="nsew", pady=2)
     elements['entry_current_position'] = temp_entry
+    temp_entry.bind('<Return>', update_current_position)
 
     temp_label = Label(tab_general, text='Total Drivers', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=7, column=0, sticky="nsew")
@@ -415,6 +421,7 @@ def load_tab_general():
     temp_entry = Entry(tab_general, textvariable=variables['total_drivers'], justify='center', insertbackground='black')
     temp_entry.grid(row=7, column=1, sticky="nsew", pady=2)
     elements['entry_total_drivers'] = temp_entry
+    temp_entry.bind('<Return>', update_total_drivers)
 
     temp_label = Label(tab_general, text='Gap to Race Start', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=8, column=0, sticky="nsew")
@@ -431,18 +438,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['gap_2_start_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_gap_2_start_h'] = temp_entry
+    temp_entry.bind('<Return>', update_gap_2_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['gap_2_start_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['gap_2_start_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_gap_2_start_m'] = temp_entry
+    temp_entry.bind('<Return>', update_gap_2_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['gap_2_start_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['gap_2_start_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_gap_2_start_s'] = temp_entry
+    temp_entry.bind('<Return>', update_gap_2_start)
 
     temp_label = Label(tab_general, text='Practice Duration', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=9, column=0, sticky="nsew")
@@ -459,18 +469,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['practice_duration_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_practice_duration_h'] = temp_entry
+    temp_entry.bind('<Return>', update_practice_duration)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['practice_duration_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['practice_duration_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_practice_duration_m'] = temp_entry
+    temp_entry.bind('<Return>', update_practice_duration)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['practice_duration_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['practice_duration_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_practice_duration_s'] = temp_entry
+    temp_entry.bind('<Return>', update_practice_duration)
 
     temp_label = Label(tab_general, text='Qualify Duration', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=10, column=0, sticky="nsew")
@@ -487,18 +500,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['qualify_duration_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_qualify_duration_h'] = temp_entry
+    temp_entry.bind('<Return>', update_qualify_duration)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['qualify_duration_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['qualify_duration_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_qualify_duration_m'] = temp_entry
+    temp_entry.bind('<Return>', update_qualify_duration)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['qualify_duration_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['qualify_duration_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_qualify_duration_s'] = temp_entry
+    temp_entry.bind('<Return>', update_qualify_duration)
 
     temp_label = Label(tab_general, text='Time to Green', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=11, column=0, sticky="nsew")
@@ -515,18 +531,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_green_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_time_to_green_h'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_green)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['time_to_green_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_green_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_time_to_green_m'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_green)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['time_to_green_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_green_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_time_to_green_s'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_green)
 
     temp_label = Label(tab_general, text='Time to Start', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=12, column=0, sticky="nsew")
@@ -543,18 +562,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_start_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_time_to_start_h'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['time_to_start_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_start_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_time_to_start_m'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['time_to_start_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['time_to_start_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_time_to_start_s'] = temp_entry
+    temp_entry.bind('<Return>', update_time_to_start)
 
     temp_label = Label(tab_general, text='Sim. Time Start', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=13, column=0, sticky="nsew")
@@ -571,18 +593,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['sim_time_start_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_sim_time_start_h'] = temp_entry
+    temp_entry.bind('<Return>', update_sim_time_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['sim_time_start_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['sim_time_start_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_sim_time_start_m'] = temp_entry
+    temp_entry.bind('<Return>', update_sim_time_start)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['sim_time_start_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['sim_time_start_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_sim_time_start_s'] = temp_entry
+    temp_entry.bind('<Return>', update_sim_time_start)
 
     temp_label = Label(tab_general, text='Theoretical Stint Time', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=14, column=0, sticky="nsew")
@@ -599,18 +624,21 @@ def load_tab_general():
     temp_entry = Entry(temp_frame, textvariable=variables['theoretical_stint_time_h'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=0, sticky="nsew", pady=2)
     elements['entry_theoretical_stint_time_h'] = temp_entry
+    temp_entry.bind('<Return>', update_theoretical_stint_time)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=1, sticky="nsew", pady=2)
     elements['theoretical_stint_time_colon'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['theoretical_stint_time_m'], width=5, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=2, sticky="nsew", pady=2)
     elements['entry_theoretical_stint_time_m'] = temp_entry
+    temp_entry.bind('<Return>', update_theoretical_stint_time)
     temp_label = Label(temp_frame, text=':', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=0, column=3, sticky="nsew", pady=2)
     elements['theoretical_stint_time_colon_2'] = temp_label
     temp_entry = Entry(temp_frame, textvariable=variables['theoretical_stint_time_s'], width=3, justify='center', insertbackground='black')
     temp_entry.grid(row=0, column=4, sticky="nsew", pady=2)
     elements['entry_theoretical_stint_time_s'] = temp_entry
+    temp_entry.bind('<Return>', update_theoretical_stint_time)
 
     temp_label = Label(tab_general, text='Average Stint Time', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(row=15, column=0, sticky="nsew")
@@ -620,6 +648,7 @@ def load_tab_general():
     temp_entry = Entry(tab_general, textvariable=variables['average_stint_time'], justify='center', insertbackground='black')
     temp_entry.grid(row=15, column=1, sticky="nsew", pady=2)
     elements['entry_average_stint_time'] = temp_entry
+    temp_entry.bind('<Return>', update_average_stint_time)
 
     temp_label = Label(tab_general, text='Drivers', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
     temp_label.grid(column=2, row=0, sticky="nsew", padx=10)
@@ -666,11 +695,11 @@ def load_tab_plan():
     elements['label_plan_actual'] = temp_label
 
     plan_frame = Frame(tab_plan, bg=CONTENT_BG)
-    plan_frame.grid(row=1, column=0, sticky="nsew")
+    plan_frame.grid(row=1, column=0, sticky="nsew", padx=10)
     elements['plan_frame_plan'] = plan_frame
 
     actual_frame = Frame(tab_plan, bg=CONTENT_BG)
-    actual_frame.grid(row=3, column=0, sticky="nsew")
+    actual_frame.grid(row=3, column=0, sticky="nsew", padx=10)
     elements['plan_frame_actual'] = actual_frame
 
 def init_time_scheduler():
@@ -692,6 +721,8 @@ def init_time_scheduler():
     actual_content = TimeScheduler(root, settings, variables, elements, data, target='actual', current_event=current_event)
     elements['actual_content'] = actual_content
 
+    init_dark_mode()
+
 def load_tab_race():
     global root, settings, variables, elements, tracker
 
@@ -699,16 +730,26 @@ def load_tab_race():
     tab_race.grid_columnconfigure((1), weight=1)
     tab_race.grid_rowconfigure(0, weight=1)
 
+    temp_frame = Frame(tab_race, bg=CONTENT_BG)
+    temp_frame.grid(row=0, column=0, sticky="nsew", rowspan=10, padx=10)
+    temp_frame.grid_columnconfigure(0, weight=1)
+    temp_frame.grid_rowconfigure(0, weight=1)
+    elements['race_tracker_slots_frame'] = temp_frame
+
     variables['race_tracker_slots_raw'] = []
     variables['race_tracker_slots'] = StringVar()
-    temp_list = Listbox(tab_race, 
+    temp_list = Listbox(temp_frame, 
                         height=20, width=10,
                         listvariable=variables['race_tracker_slots'],
                         selectmode=SINGLE,
                         exportselection=False)
-    temp_list.grid(row=0, column=0, sticky="nsew", padx=5)
+    temp_list.grid(row=0, column=0, sticky="nsew", padx='5 0')
     elements['race_tracker_slots'] = temp_list
     temp_list.bind('<<ListboxSelect>>', change_race_slot)
+
+    ys = ttk.Scrollbar(temp_frame, orient = 'vertical', command = temp_list.yview)
+    temp_list['yscrollcommand'] = ys.set
+    ys.grid(column=1, row=0, sticky='ns')
 
     input_frame = Frame(tab_race, bg=CONTENT_BG)
     input_frame.grid(row=0, column=1, sticky="nsew", padx=5)
@@ -1108,6 +1149,7 @@ def update_sheets_list(index=0):
     variables['all_events_raw'] = get_sheets()
     variables['all_events'].set(list(variables['all_events_raw'].keys()))
     elements['listbox_events'].update()
+    elements['listbox_events'].selection_clear(0, 'end')
     elements['listbox_events'].selection_set(index)
     change_sheet()
 
@@ -1145,7 +1187,7 @@ def change_race_slot(event=None):
     variables['race_tracker_edit_est_chance_of_rain'].set(tracker.loc[slot, 'Est. Chance of Rain (%)'])
     variables['race_tracker_edit_actual_weather'].set(tracker.loc[slot, 'Act. Weather at Time'])
     elements['race_tracker_edit_notes_text'].delete('1.0', 'end')
-    elements['race_tracker_edit_notes_text'].insert('end', tracker.loc[slot, 'Notes'])
+    elements['race_tracker_edit_notes_text'].insert('end', str(tracker.loc[slot, 'Notes']))
 
 def add_event_popup():
     global root, settings, variables, elements
@@ -1172,8 +1214,7 @@ def delete_event_popup():
         if event == 'Template':
             return
         delete_event(variables['all_events_raw'][event])
-        index = variables['all_events_raw'].index(event)
-        update_sheets_list(index - 1)
+        update_sheets_list(selected[0] - 1)
 
 def edit_update(event=None):
     global root, settings, variables, elements, tracker, current_event
@@ -1582,10 +1623,160 @@ def update_car(event=None):
 def update_total_time(event=None):
     global root, settings, variables, elements
 
-    if variables['total_time'].get() == '':
+    total_sum = timedelta(hours=int(variables['total_time_h'].get()),
+                          minutes=int(variables['total_time_m'].get()),
+                          seconds=int(variables['total_time_s'].get()))
+    variables['total_time_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['total_time_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['total_time_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    
+    update_values(current_event, 
+                  [f'{variables['total_time_h'].get()}:'
+                   f'{variables['total_time_m'].get()}:'
+                   f'{variables['total_time_s'].get()}'], 
+                  'B4')
+    
+def update_current_position(event=None):
+    global root, settings, variables, elements
+
+    if variables['current_position'].get() == '':
         return
     
-    update_values(current_event, [variables['total_time'].get()], 'B4')
+    update_values(current_event, [variables['current_position'].get()], 'B5')
+
+def update_total_drivers(event=None):
+    global root, settings, variables, elements
+
+    if variables['total_drivers'].get() == '':
+        return
+    
+    update_values(current_event, [variables['total_drivers'].get()], 'B6')
+
+def update_gap_2_start(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['gap_2_start_h'].get()),
+                          minutes=int(variables['gap_2_start_m'].get()),
+                          seconds=int(variables['gap_2_start_s'].get()))
+    variables['gap_2_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['gap_2_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['gap_2_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    
+    update_values(current_event, 
+                  [f'{variables['gap_2_start_h'].get()}:'
+                   f'{variables['gap_2_start_m'].get()}:'
+                   f'{variables['gap_2_start_s'].get()}'], 
+                  'B8')
+    
+def update_practice_duration(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['practice_duration_h'].get()),
+                            minutes=int(variables['practice_duration_m'].get()),
+                            seconds=int(variables['practice_duration_s'].get()))
+    
+    variables['practice_duration_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['practice_duration_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['practice_duration_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['practice_duration_h'].get()}:'
+                     f'{variables['practice_duration_m'].get()}:'
+                     f'{variables['practice_duration_s'].get()}'], 
+                    'B9')
+    
+def update_qualify_duration(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['qualify_duration_h'].get()),
+                            minutes=int(variables['qualify_duration_m'].get()),
+                            seconds=int(variables['qualify_duration_s'].get()))
+    
+    variables['qualify_duration_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['qualify_duration_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['qualify_duration_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['qualify_duration_h'].get()}:'
+                     f'{variables['qualify_duration_m'].get()}:'
+                     f'{variables['qualify_duration_s'].get()}'], 
+                    'B10')
+    
+def update_time_to_green(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['time_to_green_h'].get()),
+                            minutes=int(variables['time_to_green_m'].get()),
+                            seconds=int(variables['time_to_green_s'].get()))
+    
+    variables['time_to_green_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['time_to_green_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['time_to_green_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['time_to_green_h'].get()}:'
+                     f'{variables['time_to_green_m'].get()}:'
+                     f'{variables['time_to_green_s'].get()}'], 
+                    'B11')
+    
+def update_time_to_start(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['time_to_start_h'].get()),
+                            minutes=int(variables['time_to_start_m'].get()),
+                            seconds=int(variables['time_to_start_s'].get()))
+    
+    variables['time_to_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['time_to_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['time_to_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['time_to_start_h'].get()}:'
+                     f'{variables['time_to_start_m'].get()}:'
+                     f'{variables['time_to_start_s'].get()}'], 
+                    'B12')
+    
+def update_sim_time_start(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['sim_time_start_h'].get()),
+                            minutes=int(variables['sim_time_start_m'].get()),
+                            seconds=int(variables['sim_time_start_s'].get()))
+    
+    variables['sim_time_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['sim_time_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['sim_time_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['sim_time_start_h'].get()}:'
+                     f'{variables['sim_time_start_m'].get()}:'
+                     f'{variables['sim_time_start_s'].get()}'], 
+                    'B13')
+    
+def update_theoretical_stint_time(event=None):
+    global root, settings, variables, elements
+
+    total_sum = timedelta(hours=int(variables['theoretical_stint_time_h'].get()),
+                            minutes=int(variables['theoretical_stint_time_m'].get()),
+                            seconds=int(variables['theoretical_stint_time_s'].get()))
+    
+    variables['theoretical_stint_time_h'].set(f'{int(total_sum.seconds // 3600):02d}')
+    variables['theoretical_stint_time_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
+    variables['theoretical_stint_time_s'].set(f'{int(total_sum.seconds % 60):02d}')
+
+    update_values(current_event,
+                    [f'{variables['theoretical_stint_time_h'].get()}:'
+                     f'{variables['theoretical_stint_time_m'].get()}:'
+                     f'{variables['theoretical_stint_time_s'].get()}'], 
+                    'B14')
+    
+def update_average_stint_time(event=None):
+    global root, settings, variables, elements
+
+    if variables['average_stint_time'].get() == '':
+        return
+    
+    update_values(current_event, [variables['average_stint_time'].get()], 'B15')
 
 def dark_mode():
     global root, settings, variables, elements, \
@@ -1651,6 +1842,24 @@ def dark_mode():
     for i in elements['main_notebook'].winfo_children():
         i.config(bg=CONTENT_BG_DARK)
 
+    plan = elements['plan_content']
+    actual = elements['actual_content']
+    if isinstance(plan, TimeScheduler):
+        for widget in plan.widgets:
+            if isinstance(plan.widgets[widget], Label):
+                plan.widgets[widget].config(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
+            elif isinstance(plan.widgets[widget], Frame):
+                if len(widget.split('_')) == 4:
+                    plan.widgets[widget].config(bg=ENTRY_FG_DARK)
+
+    if isinstance(actual, TimeScheduler):
+        for widget in actual.widgets:
+            if isinstance(actual.widgets[widget], Label):
+                actual.widgets[widget].config(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
+            elif isinstance(plan.widgets[widget], Frame):
+                if len(widget.split('_')) == 4:
+                    actual.widgets[widget].config(bg=ENTRY_FG_DARK)
+
 def light_mode():
     global root, settings, variables, elements, \
             DARK_MODE, STATUS_BG, CONTENT_BG, ENTRY_BG, BUTTON_BG, \
@@ -1715,6 +1924,24 @@ def light_mode():
 
     for i in elements['main_notebook'].winfo_children():
         i.config(bg=CONTENT_BG)
+
+    plan = elements['plan_content']
+    actual = elements['actual_content']
+    if isinstance(plan, TimeScheduler):
+        for widget in plan.widgets:
+            if isinstance(plan.widgets[widget], Label):
+                plan.widgets[widget].config(bg=CONTENT_BG, fg=ENTRY_FG)
+            elif isinstance(plan.widgets[widget], Frame):
+                if len(widget.split('_')) == 4:
+                    plan.widgets[widget].config(bg=ENTRY_FG)
+
+    if isinstance(actual, TimeScheduler):
+        for widget in actual.widgets:
+            if isinstance(actual.widgets[widget], Label):
+                actual.widgets[widget].config(bg=CONTENT_BG, fg=ENTRY_FG)
+            elif isinstance(plan.widgets[widget], Frame):
+                if len(widget.split('_')) == 4:
+                    actual.widgets[widget].config(bg=ENTRY_FG)
 
 def init_dark_mode():
     global root, settings, variables, elements, DARK_MODE
