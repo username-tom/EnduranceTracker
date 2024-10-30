@@ -58,10 +58,14 @@ INDEX = {
     "INDEX_DRIVER_8": (0, Y),
 }
 WEATHER_LENGTH = 11
-STATUS_BG = "#f7d6ff"
-CONTENT_BG = "#fff9d6"
+STATUS_BG = "#f0f0f0"
+CONTENT_BG = "#fafafa"
 STATUS_BG_DARK = "#0A0A0A"
 CONTENT_BG_DARK = "#202020"
+TAB_BG = "#fafafa"
+TAB_BG_ACTIVE = "#dadada"
+TAB_BG_DARK = "#050505"
+TAB_BG_DARK_ACTIVE = "#252525"
 DARK_FG = 'white'
 ENTRY_BG = 'white'
 ENTRY_FG = 'black'
@@ -94,4 +98,4 @@ def set_config(section, key, value):
 GEOMETRY = get_config('general', 'geometry')
 STATUS_TIMES = get_config('settings', 'times')
 SHEET_ID = get_config('settings', 'sheet_id')
-DARK_MODE = bool(get_config('general', 'dark_mode'))
+DARK_MODE = True if get_config('general', 'dark_mode').lower() == 'true' else False

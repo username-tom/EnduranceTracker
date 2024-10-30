@@ -9,6 +9,7 @@ from docs.conf import *
 
 from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
+from customtkinter import CTkOptionMenu
 from threading import Thread
 from datetime import datetime, timedelta
 from tkcalendar import Calendar, DateEntry
@@ -53,15 +54,21 @@ def loading():
     # s.configure("TNotebook.Tab",
     #             padding=[10, 0])
     
-    s.theme_create("light", parent='alt', settings={
+    s.theme_create("light", parent='default', settings={
         "TNotebook": {"configure": {"background": CONTENT_BG,
                                     "tabposition": "sw"}},
         "TNotebook.Tab": {
             "configure": {"padding": [20, 10], 
                           "background": CONTENT_BG, 
                           "foreground": LABEL_FG},
-            "map": {"background": [("selected", STATUS_BG)],
-                    "foreground": [("selected", LABEL_FG)]},
+            "map": {"background": [("selected", TAB_BG_ACTIVE),
+                                   ("active", TAB_BG_ACTIVE),
+                                   ("!disabled", CONTENT_BG),
+                                   ("readonly", CONTENT_BG)],
+                    "foreground": [("selected", LABEL_FG),
+                                   ("active", LABEL_FG),
+                                   ("!disabled", LABEL_FG),
+                                   ("readonly", LABEL_FG)]},
                     "expand": [("selected", [1, 0, 1, 0])]},
         "TComboBox": {
             "configure": {'fieldbackground': ENTRY_BG,
@@ -72,21 +79,33 @@ def loading():
                           'background': ''},
             "map": {"background": [("active", ENTRY_BG),
                                    ("selected", ENTRY_BG),
-                                   ("!disabled", ENTRY_BG)],
+                                   ("!disabled", ENTRY_BG),
+                                   ("readonly", ENTRY_BG)],
                     "foreground": [("active", ENTRY_FG),
                                    ("selected", ENTRY_FG),
-                                   ("!disabled", ENTRY_FG)]}},
+                                   ("!disabled", ENTRY_FG),
+                                   ("readonly", ENTRY_FG)]}},
+        "TScrollbar": {
+            "configure": {'background': ENTRY_BG,
+                          'troughcolor': '#f0f0f0',
+                          'arrowcolor': 'grey'}},
         })
     
-    s.theme_create("dark", parent='alt', settings={
+    s.theme_create("dark", parent='default', settings={
         "TNotebook": {"configure": {"background": CONTENT_BG_DARK,
                                     "tabposition": "sw"}},
         "TNotebook.Tab": {
             "configure": {"padding": [20, 10], 
                           "background": CONTENT_BG_DARK, 
                           "foreground": LABEL_FG_DARK},
-            "map": {"background": [("selected", STATUS_BG_DARK)],
-                    "foreground": [("selected", LABEL_FG_DARK)]},
+            "map": {"background": [("selected", TAB_BG_DARK_ACTIVE),
+                                   ("active", TAB_BG_DARK_ACTIVE),
+                                   ("!disabled", STATUS_BG_DARK),
+                                   ("readonly", STATUS_BG_DARK)],
+                    "foreground": [("selected", LABEL_FG_DARK),
+                                   ("active", LABEL_FG_DARK),
+                                   ("!disabled", LABEL_FG_DARK),
+                                   ("readonly", LABEL_FG_DARK)]},
                     "expand": [("selected", [1, 0, 1, 0])]},
         "TComboBox": {
             "configure": {'fieldbackground': ENTRY_BG_DARK,
@@ -97,10 +116,16 @@ def loading():
                           'background': ''},
             "map": {"background": [("active", ENTRY_BG_DARK),
                                    ("selected", ENTRY_BG_DARK),
-                                   ("!disabled", ENTRY_BG_DARK)],
+                                   ("!disabled", ENTRY_BG_DARK),
+                                   ("readonly", ENTRY_BG_DARK)],
                     "foreground": [("active", ENTRY_FG_DARK),
                                    ("selected", ENTRY_FG_DARK),
-                                   ("!disabled", ENTRY_FG_DARK)]}}
+                                   ("!disabled", ENTRY_FG_DARK),
+                                   ("readonly", ENTRY_FG_DARK)]}},
+        "TScrollbar": {
+            "configure": {'background': ENTRY_BG_DARK,
+                          'troughcolor': TAB_BG_DARK_ACTIVE,
+                          'arrowcolor': 'grey'}},
         })
     
     if DARK_MODE:
@@ -120,7 +145,7 @@ def loading():
     settings['dark_mode'] = BooleanVar(value=DARK_MODE)
 
     main_menu = Menu(root)
-    # root.config(menu=main_menu)
+    # root.configure(menu=main_menu)
     elements['main_menu'] = main_menu
     load_menu()
 
@@ -138,7 +163,7 @@ def loading():
 
     login()
     update_sheets_list()
-    init_dark_mode()
+    # init_dark_mode()
     start_status()
 
 
@@ -702,27 +727,6 @@ def load_tab_plan():
     actual_frame.grid(row=3, column=0, sticky="nsew", padx=10)
     elements['plan_frame_actual'] = actual_frame
 
-def init_time_scheduler():
-    global root, settings, variables, elements, data, current_event
-
-    if 'plan_content' in elements:
-        elements['plan_content'].__del__()
-    if 'actual_content' in elements:
-        elements['actual_content'].__del__()
-
-    for i in range(8):
-        elements['plan_frame_plan'].grid_rowconfigure(i, weight=0)
-        elements['plan_frame_actual'].grid_rowconfigure(i, weight=0)
-    root.update()
-
-    plan_content = TimeScheduler(root, settings, variables, elements, data, target='plan', current_event=current_event)
-    elements['plan_content'] = plan_content
-
-    actual_content = TimeScheduler(root, settings, variables, elements, data, target='actual', current_event=current_event)
-    elements['actual_content'] = actual_content
-
-    init_dark_mode()
-
 def load_tab_race():
     global root, settings, variables, elements, tracker
 
@@ -834,10 +838,13 @@ def load_tab_race():
     elements['race_tracker_edit_actual_weather_label'] = temp_label
 
     variables['race_tracker_edit_actual_weather'] = StringVar(value='')
-    temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'],
-                              state="readonly")
+    temp_entry = CTkOptionMenu(edit_frame, variable=variables['race_tracker_edit_actual_weather'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG)
+    # temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'],
+    #                           state="readonly")
     temp_entry.grid(row=5, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_edit_actual_weather_entry'] = temp_entry
+    # print(type(temp_entry), isinstance(temp_entry, Entry))
 
     temp_frame = Frame(edit_frame, bg=CONTENT_BG)
     temp_entry = Text(temp_frame, height=2, width=15)
@@ -926,8 +933,10 @@ def load_tab_race():
     elements['race_tracker_current_actual_weather_label'] = temp_label
 
     variables['race_tracker_current_actual_weather'] = StringVar(value='')
-    temp_entry = ttk.Combobox(current_frame, textvariable=variables['race_tracker_current_actual_weather'],
-                              state="readonly")
+    temp_entry = CTkOptionMenu(current_frame, variable=variables['race_tracker_current_actual_weather'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG)
+    # temp_entry = ttk.Combobox(current_frame, textvariable=variables['race_tracker_current_actual_weather'],
+    #                           state="readonly")
     temp_entry.grid(row=6, column=1, sticky="nsew", pady=2, padx=10)
     elements['race_tracker_current_actual_weather_entry'] = temp_entry
 
@@ -965,6 +974,27 @@ def load_tab_race():
     temp_button = Button(input_frame, text='Copy from Above', command=current_copy)
     temp_button.grid(row=11, column=1, sticky="nsew", padx=20, pady=10)
     elements['copy_button'] = temp_button
+
+def init_time_scheduler():
+    global root, settings, variables, elements, data, current_event
+
+    if 'plan_content' in elements:
+        elements['plan_content'].__del__()
+    if 'actual_content' in elements:
+        elements['actual_content'].__del__()
+
+    for i in range(8):
+        elements['plan_frame_plan'].grid_rowconfigure(i, weight=0)
+        elements['plan_frame_actual'].grid_rowconfigure(i, weight=0)
+    root.update()
+
+    plan_content = TimeScheduler(root, settings, variables, elements, data, target='plan', current_event=current_event)
+    elements['plan_content'] = plan_content
+
+    actual_content = TimeScheduler(root, settings, variables, elements, data, target='actual', current_event=current_event)
+    elements['actual_content'] = actual_content
+
+    init_dark_mode()
 
 
 def start_status():
@@ -1027,9 +1057,9 @@ def update_status():
             gap_2_start = str(practice + qualify + to_green + to_start).split('.')[0]
             set_time('gap_2_start', gap_2_start)
 
-            elements['session_button'].config(state=NORMAL)
-            elements['back_button'].config(state=NORMAL)
-            elements['pit_button'].config(state=NORMAL)
+            elements['session_button'].configure(state=NORMAL)
+            elements['back_button'].configure(state=NORMAL)
+            elements['pit_button'].configure(state=NORMAL)
 
             if duration <= practice:
                 session, event_time = 'Practice', duration
@@ -1046,9 +1076,9 @@ def update_status():
                 variables['current_sim_time'].set(str(duration - practice - qualify + sim_start).split('.')[0])
             if duration > practice + qualify + to_green + to_start + race_length:
                 session, event_time = 'Race Over', timedelta(0)
-                elements['session_button'].config(state=DISABLED, text='Race Over')
-                elements['back_button'].config(state=DISABLED)
-                elements['pit_button'].config(state=DISABLED)
+                elements['session_button'].configure(state=DISABLED, text='Race Over')
+                elements['back_button'].configure(state=DISABLED)
+                elements['pit_button'].configure(state=DISABLED)
 
             variables['current_session'].set(session)
             variables['current_event_time'].set(str(event_time).split('.')[0])
@@ -1336,21 +1366,21 @@ def current_sessions(event=None):
 
     session_button = elements['session_button']
     if session_button['text'] == 'Practice':
-        session_button.config(text='Qualify')
+        session_button.configure(text='Qualify')
         variables['practice_duration'].set(get_duration().strftime('%H:%M:%S'))
         update_values(current_event, [variables['practice_duration'].get()], 'B9')
     elif session_button['text'] == 'Qualify':
-        session_button.config(text='Waiting for Drivers')
+        session_button.configure(text='Waiting for Drivers')
         variables['qualify_duration'].set(
             (get_duration() - get_delta('practice_duration')).strftime('%H:%M:%S'))
         update_values(current_event, [variables['qualify_duration'].get()], 'B10')
     elif session_button['text'] == 'Waiting for Drivers':
-        session_button.config(text='Waiting for Race Start')
+        session_button.configure(text='Waiting for Race Start')
         variables['time_to_green'].set(
             (get_duration() - get_delta('practice_duration') - get_delta('qualify_duration')).strftime('%H:%M:%S'))
         update_values(current_event, [variables['time_to_green'].get()], 'B11')
     elif session_button['text'] == 'Waiting for Race Start':
-        session_button.config(text='Race Started')
+        session_button.configure(text='Race Started')
         variables['time_to_start'].set(
             (get_duration() - get_delta('practice_duration') - 
              get_delta('qualify_duration') - get_delta('time_to_green')).strftime('%H:%M:%S'))
@@ -1358,30 +1388,30 @@ def current_sessions(event=None):
         update_values(current_event, [variables['time_to_start'].get()], 'B12')
         update_values(current_event, [variables['gap_2_start'].get()], 'B8')
     elif session_button['text'] == 'Race Started':
-        session_button.config(text='Race Over')
+        session_button.configure(text='Race Over')
         
 def current_back(event=None):
     global root, settings, variables, elements, tracker, current_event
 
     session_button = elements['session_button']
     if session_button['text'] == 'Qualify':
-        session_button.config(text='Practice')
+        session_button.configure(text='Practice')
     elif session_button['text'] == 'Waiting for Drivers':
-        session_button.config(text='Qualify')
+        session_button.configure(text='Qualify')
     elif session_button['text'] == 'Waiting for Race Start':
-        session_button.config(text='Waiting for Drivers')
+        session_button.configure(text='Waiting for Drivers')
     elif session_button['text'] == 'Race Started':
-        session_button.config(text='Waiting for Drivers')
+        session_button.configure(text='Waiting for Drivers')
         variables['time_to_start'].set('01:00:00')
     elif session_button['text'] == 'Race Over':
-        session_button.config(text='Race Started')
+        session_button.configure(text='Race Started')
 
 def current_pit(event=None):
     global root, settings, variables, elements, tracker, current_event
 
     pit_button = elements['pit_button']
     if pit_button['text'] == 'Pitting IN':
-        pit_button.config(text='Pitting OUT')
+        pit_button.configure(text='Pitting OUT')
 
         # add pit in data
         to_add = [
@@ -1398,7 +1428,7 @@ def current_pit(event=None):
         add_to_tracker(to_add)
 
     elif pit_button['text'] == 'Pitting OUT':
-        pit_button.config(text='Pitting IN')
+        pit_button.configure(text='Pitting IN')
 
         # add pit out data
         to_add = [
@@ -1507,8 +1537,8 @@ def update_variables_from_data_frame():
     for i in range(WEATHER_LENGTH):
         variables['weather'].append(get_data_frame_value(col=Z, row=i + 1))
 
-    elements['race_tracker_edit_actual_weather_entry'].config(values=variables['weather'])
-    elements['race_tracker_current_actual_weather_entry'].config(values=variables['weather'])
+    elements['race_tracker_edit_actual_weather_entry'].configure(values=variables['weather'])
+    elements['race_tracker_current_actual_weather_entry'].configure(values=variables['weather'])
 
     calculate_avg_stint_time()
 
@@ -1785,80 +1815,85 @@ def dark_mode():
             BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
     
     settings['dark_mode'].set('True')
-    elements['status'].config(bg=STATUS_BG_DARK)
-    elements['main_content'].config(bg=CONTENT_BG_DARK)
-    s = ttk.Style()
-    s.theme_use("dark")
+    elements['status'].configure(bg=STATUS_BG_DARK)
+    elements['main_content'].configure(bg=CONTENT_BG_DARK)
 
-    elements['plan_content'].widgets['label_hour'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
-    elements['plan_content'].widgets['label_stints'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
-    elements['actual_content'].widgets['label_hour'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
-    elements['actual_content'].widgets['label_stints'].config(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['plan_content'].widgets['label_hour'].configure(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['plan_content'].widgets['label_stints'].configure(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['actual_content'].widgets['label_hour'].configure(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
+    elements['actual_content'].widgets['label_stints'].configure(fg=LABEL_FG_DARK, bg=CONTENT_BG_DARK)
     
     for i in ['date_picker_event_time_est', 'date_picker_event_time_cst', 'date_picker_event_time_mst']:
-        elements[i].master.config(bg=CONTENT_BG_DARK)
-        elements[i].widgets['main_frame'].config(bg=ENTRY_BG_DARK)
-        elements[i].entry.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+        elements[i].master.configure(bg=CONTENT_BG_DARK)
+        elements[i].widgets['main_frame'].configure(bg=ENTRY_BG_DARK)
+        elements[i].entry.configure(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
         try:
             elements[i].entry.configure(insertbackground='white')
         except TclError:
             pass
-        elements[i].date_picker_icon.config(bg=ENTRY_BG_DARK, fg=BUTTON_FG_DARK)
+        elements[i].date_picker_icon.configure(bg=ENTRY_BG_DARK, fg=BUTTON_FG_DARK)
             
     for i in elements:
         element = elements[i]
         if isinstance(element, Label):
-            element.config(bg=CONTENT_BG_DARK, fg='white')
+            element.configure(bg=CONTENT_BG_DARK, fg='white')
         elif isinstance(element, ttk.Separator):
-            element.config(bg=CONTENT_BG_DARK)
+            element.configure(bg=CONTENT_BG_DARK)
+        elif isinstance(element, CTkOptionMenu):
+            element.configure(fg_color=ENTRY_BG_DARK, dropdown_fg_color=ENTRY_BG_DARK, 
+                              button_color=BUTTON_BG_DARK, dropdown_text_color=ENTRY_FG_DARK,
+                              text_color=ENTRY_FG_DARK)
         elif isinstance(element, Entry):
+            element.configure(background=ENTRY_BG_DARK, foreground=ENTRY_FG_DARK)
             try:
                 element.configure(insertbackground='white')
             except TclError:
                 pass
-            element.configure(background=ENTRY_BG_DARK, foreground=ENTRY_FG_DARK)
         elif isinstance(element, Text):
-            element.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+            element.configure(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
         elif isinstance(element, Button):
-            element.config(bg=BUTTON_BG_DARK, fg=BUTTON_FG_DARK)
+            element.configure(bg=BUTTON_BG_DARK, fg=BUTTON_FG_DARK)
         elif isinstance(element, Listbox):
-            element.config(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
+            element.configure(bg=ENTRY_BG_DARK, fg=ENTRY_FG_DARK)
         elif isinstance(element, Scrollbar):
             pass
         elif isinstance(element, LabelFrame):
-            element.config(bg=CONTENT_BG_DARK)
+            element.configure(bg=CONTENT_BG_DARK)
         elif isinstance(element, Frame):
-            element.config(bg=CONTENT_BG_DARK)
+            element.configure(bg=CONTENT_BG_DARK)
             
-    elements['status'].config(bg=STATUS_BG_DARK)
+    elements['status'].configure(bg=STATUS_BG_DARK)
     
     for i in elements['status'].winfo_children():
         # element = elements[i]
         if isinstance(i, Label):
-            i.config(bg=STATUS_BG_DARK, fg='white')
+            i.configure(bg=STATUS_BG_DARK, fg='white')
         # elif isinstance(i, ttk.Separator):
-        #     i.config(bg=STATUS_BG)
+        #     i.configure(bg=STATUS_BG)
 
     for i in elements['main_notebook'].winfo_children():
-        i.config(bg=CONTENT_BG_DARK)
+        i.configure(bg=CONTENT_BG_DARK)
 
     plan = elements['plan_content']
     actual = elements['actual_content']
     if isinstance(plan, TimeScheduler):
         for widget in plan.widgets:
             if isinstance(plan.widgets[widget], Label):
-                plan.widgets[widget].config(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
+                plan.widgets[widget].configure(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
             elif isinstance(plan.widgets[widget], Frame):
                 if len(widget.split('_')) == 4:
-                    plan.widgets[widget].config(bg=ENTRY_FG_DARK)
+                    plan.widgets[widget].configure(bg=ENTRY_FG_DARK)
 
     if isinstance(actual, TimeScheduler):
         for widget in actual.widgets:
             if isinstance(actual.widgets[widget], Label):
-                actual.widgets[widget].config(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
+                actual.widgets[widget].configure(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
             elif isinstance(plan.widgets[widget], Frame):
                 if len(widget.split('_')) == 4:
-                    actual.widgets[widget].config(bg=ENTRY_FG_DARK)
+                    actual.widgets[widget].configure(bg=ENTRY_FG_DARK)
+
+    s = ttk.Style()
+    s.theme_use("dark")
 
 def light_mode():
     global root, settings, variables, elements, \
@@ -1867,90 +1902,94 @@ def light_mode():
             BUTTON_BG_DARK, LABEL_FG, LABEL_FG_DARK
 
     settings['dark_mode'].set('False')
-    elements['status'].config(bg=STATUS_BG)
-    elements['main_content'].config(bg=CONTENT_BG)
+    elements['status'].configure(bg=STATUS_BG)
+    elements['main_content'].configure(bg=CONTENT_BG)
 
-    s = ttk.Style()
-    s.theme_use("light")
-
-    elements['plan_content'].widgets['label_hour'].config(fg=LABEL_FG, bg=CONTENT_BG)
-    elements['plan_content'].widgets['label_stints'].config(fg=LABEL_FG, bg=CONTENT_BG)
-    elements['actual_content'].widgets['label_hour'].config(fg=LABEL_FG, bg=CONTENT_BG)
-    elements['actual_content'].widgets['label_stints'].config(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['plan_content'].widgets['label_hour'].configure(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['plan_content'].widgets['label_stints'].configure(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['actual_content'].widgets['label_hour'].configure(fg=LABEL_FG, bg=CONTENT_BG)
+    elements['actual_content'].widgets['label_stints'].configure(fg=LABEL_FG, bg=CONTENT_BG)
     
     for i in ['date_picker_event_time_est', 'date_picker_event_time_cst', 'date_picker_event_time_mst']:
-        elements[i].master.config(bg=CONTENT_BG)
-        elements[i].widgets['main_frame'].config(bg=ENTRY_BG)
-        elements[i].entry.config(bg=ENTRY_BG, fg=ENTRY_FG)
+        elements[i].master.configure(bg=CONTENT_BG)
+        elements[i].widgets['main_frame'].configure(bg=ENTRY_BG)
+        elements[i].entry.configure(bg=ENTRY_BG, fg=ENTRY_FG)
         try:
             elements[i].entry.configure(insertbackground='black')
         except TclError:
             pass
-        elements[i].date_picker_icon.config(bg=ENTRY_BG, fg=BUTTON_FG)
+        elements[i].date_picker_icon.configure(bg=ENTRY_BG, fg=BUTTON_FG)
             
     for i in elements:
         element = elements[i]
         if isinstance(element, Label):
-            element.config(bg=CONTENT_BG, fg='black')
+            element.configure(bg=CONTENT_BG, fg='black')
         elif isinstance(element, ttk.Separator):
-            element.config(bg=CONTENT_BG)
+            element.configure(bg=CONTENT_BG)
+        elif isinstance(element, CTkOptionMenu):
+            element.configure(fg_color=ENTRY_BG, dropdown_fg_color=ENTRY_BG, 
+                              button_color=BUTTON_BG, dropdown_text_color=ENTRY_FG,
+                              text_color=ENTRY_FG)
         elif isinstance(element, Entry):
             try:
                 element.configure(insertbackground='black')
             except TclError:
                 pass
-            element.config(background=ENTRY_BG, foreground=ENTRY_FG)
+            element.configure(background=ENTRY_BG, foreground=ENTRY_FG)
         elif isinstance(element, Text):
-            element.config(bg=ENTRY_BG, fg=ENTRY_FG)
+            element.configure(bg=ENTRY_BG, fg=ENTRY_FG)
         elif isinstance(element, Button):
-            element.config(bg=BUTTON_BG, fg=BUTTON_FG)
+            element.configure(bg=BUTTON_BG, fg=BUTTON_FG)
         elif isinstance(element, Listbox):
-            element.config(bg=ENTRY_BG, fg=ENTRY_FG)
+            element.configure(bg=ENTRY_BG, fg=ENTRY_FG)
         elif isinstance(element, Scrollbar):
             pass
         elif isinstance(element, LabelFrame):
-            element.config(bg=CONTENT_BG)
+            element.configure(bg=CONTENT_BG)
         elif isinstance(element, Frame):
-            element.config(bg=CONTENT_BG)
+            element.configure(bg=CONTENT_BG)
 
-    elements['status'].config(bg=STATUS_BG)
+    elements['status'].configure(bg=STATUS_BG)
             
     for i in elements['status'].winfo_children():
         # element = elements[i]
         if isinstance(i, Label):
-            i.config(bg=STATUS_BG, fg='black')
+            i.configure(bg=STATUS_BG, fg='black')
         # elif isinstance(i, ttk.Separator):
-        #     i.config(bg=STATUS_BG)
+        #     i.configure(bg=STATUS_BG)
 
     for i in elements['main_notebook'].winfo_children():
-        i.config(bg=CONTENT_BG)
+        i.configure(bg=CONTENT_BG)
 
     plan = elements['plan_content']
     actual = elements['actual_content']
     if isinstance(plan, TimeScheduler):
         for widget in plan.widgets:
             if isinstance(plan.widgets[widget], Label):
-                plan.widgets[widget].config(bg=CONTENT_BG, fg=ENTRY_FG)
+                plan.widgets[widget].configure(bg=CONTENT_BG, fg=ENTRY_FG)
             elif isinstance(plan.widgets[widget], Frame):
                 if len(widget.split('_')) == 4:
-                    plan.widgets[widget].config(bg=ENTRY_FG)
+                    plan.widgets[widget].configure(bg=ENTRY_FG)
 
     if isinstance(actual, TimeScheduler):
         for widget in actual.widgets:
             if isinstance(actual.widgets[widget], Label):
-                actual.widgets[widget].config(bg=CONTENT_BG, fg=ENTRY_FG)
+                actual.widgets[widget].configure(bg=CONTENT_BG, fg=ENTRY_FG)
             elif isinstance(plan.widgets[widget], Frame):
                 if len(widget.split('_')) == 4:
-                    actual.widgets[widget].config(bg=ENTRY_FG)
+                    actual.widgets[widget].configure(bg=ENTRY_FG)
+
+    s = ttk.Style()
+    s.theme_use("light")
 
 def init_dark_mode():
     global root, settings, variables, elements, DARK_MODE
 
-    if not DARK_MODE:
-        light_mode()
+    if settings['dark_mode'].get():
+        dark_mode()
 
     else:
-        dark_mode()
+        light_mode()
         
     root.update()
 
@@ -1959,13 +1998,13 @@ def toggle_dark_mode(event=None):
 
     if DARK_MODE:
         DARK_MODE = False
-        settings['dark_mode'].set('False')
+        settings['dark_mode'].set(False)
         light_mode()
 
         
     else:
         DARK_MODE = True
-        settings['dark_mode'].set('True')
+        settings['dark_mode'].set(True)
         dark_mode()
         
     root.update()

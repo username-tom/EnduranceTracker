@@ -277,3 +277,69 @@ class DatePicker:
 
         select_button = Button(top, text="Select", command=on_date_select)
         select_button.grid(column=0, row=2, pady=5)
+
+
+class Dropdown:
+    def __init__(self, master, root, settings, variables, elements, options=[], target='edit'):
+        self.root = root
+        self.settings = settings
+        self.variables = variables
+        self.elements = elements
+        self.master = master
+        self.options = options
+        self.widgets = {}
+        self.create_widgets()
+        self.target = target
+
+    def create_widgets(self):
+        frame = Frame(self.master, background=CONTENT_BG)
+        frame.grid(row=0, column=0, sticky='news')
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        self.widgets['main_frame'] = frame
+
+        if self.target == 'edit' and self.variables['race_tracker_edit_actual_weather']:
+            temp_entry = Entry(frame, textvariable=self.variables['race_tracker_edit_actual_weather'])
+            self.widgets['entry'] = temp_entry
+            temp_entry.grid(row=0, column=0, sticky='news', padx=(0, 0))
+            self.elements['race_tracker_edit_actual_weather_textbox'] = temp_entry
+            
+            temp_button = Button(frame, text='▼', command=self.open_dropdown, 
+                                 border=0, borderwidth=0, relief='flat', 
+                                 justify='center', anchor='center')
+            self.widgets['button'] = temp_button
+            temp_button.grid(row=0, column=1, sticky='news', padx=(0, 0))
+            self.elements['race_tracker_edit_actual_weather_button'] = temp_button
+
+        elif self.target == 'current' and self.variables['race_tracker_current_actual_weather']:
+            temp_entry = Entry(frame, textvariable=self.variables['race_tracker_current_actual_weather'])
+            self.widgets['entry'] = temp_entry
+            temp_entry.grid(row=0, column=0, sticky='news', padx=(0, 0))
+            self.elements['race_tracker_current_actual_weather_textbox'] = temp_entry
+
+            temp_button = Button(frame, text='▼', command=self.open_dropdown,
+                                    border=0, borderwidth=0, relief='flat',
+                                    justify='center', anchor='center')
+            self.widgets['button'] = temp_button
+            temp_button.grid(row=0, column=1, sticky='news', padx=(0, 0))
+
+            
+        else:
+            raise TrackerError("Missing variable [race_tracker_edit_actual_weather]")
+        
+    def open_dropdown(self):
+        top = Toplevel(self.root, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_BG_DARK)
+        top.resizable(False, False)
+        top.title("Select Weather Condition")
+        
+        for option in self.options:
+            temp_button = Button(top, text=option, command=lambda option=option: self.select_option(option),
+                                 background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_BG_DARK,
+                                 foreground=ENTRY_FG if self.settings['dark_mode'] else ENTRY_FG_DARK)
+            temp_button.pack(fill='x')
+
+    def select_option(self, option):
+        if self.target == 'edit':
+            self.variables['race_tracker_edit_actual_weather'].set(option)
+        elif self.target == 'plan':
+            self.variables['race_tracker_current_actual_weather'].set(option)
