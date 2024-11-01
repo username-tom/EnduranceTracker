@@ -1,3 +1,24 @@
+import configparser as cp
+import os
+OWD = os.getcwd()
+os.chdir(OWD)
+
+config = cp.ConfigParser()
+config.read('config.ini')
+
+def get_config(section, key):
+    return config.get(section, key)
+
+def set_config(section, key, value):
+    config.set(section, key, value)
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+
+GEOMETRY = get_config('general', 'geometry')
+STATUS_TIMES = get_config('settings', 'times')
+SHEET_ID = get_config('settings', 'sheet_id')
+DARK_MODE = True if get_config('general', 'dark_mode').lower() == 'true' else False
+
 SAMPLE_RANGE_NAME = "A1:Z200"
 MAX_DRIVER = 8
 
@@ -79,23 +100,3 @@ BUTTON_BG_DARK = '#0A0A0A'
 BUTTON_FG_DARK = 'white'
 HOUR_STINT_FONT = 'TkFixedFont'
 
-import configparser as cp
-import os
-OWD = os.getcwd()
-os.chdir(OWD)
-
-config = cp.ConfigParser()
-config.read('config.ini')
-
-def get_config(section, key):
-    return config.get(section, key)
-
-def set_config(section, key, value):
-    config.set(section, key, value)
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-
-GEOMETRY = get_config('general', 'geometry')
-STATUS_TIMES = get_config('settings', 'times')
-SHEET_ID = get_config('settings', 'sheet_id')
-DARK_MODE = True if get_config('general', 'dark_mode').lower() == 'true' else False

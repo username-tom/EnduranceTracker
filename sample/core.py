@@ -38,7 +38,7 @@ class TimeScheduler:
 
     def create_widgets(self):
         frame = self.elements['plan_frame_plan'] if self.target == 'plan' else self.elements['plan_frame_actual']
-        for i in range(25):
+        for i in range(100):
             frame.grid_columnconfigure(i, weight=0)
         for child in frame.winfo_children():
             child.destroy()
@@ -62,63 +62,122 @@ class TimeScheduler:
             total_time = self.get_delta('total_time').total_seconds()
             total_time_in_h = ceil(total_time / 3600)
             stint_time = self.get_delta('theoretical_stint_time').total_seconds()
-            stints = ceil(total_time / stint_time)
-            remains = int(total_time % stint_time) / stint_time
-            
-            # print(total_time, stint_time, stints, remains)
-            if remains == 0:
-                weight = 1
-            else:
-                weight = ceil(1 / remains)
-            # print(weight)
 
-            time_frame = Frame(frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-            time_frame.grid(row=0, column=1, sticky='news', padx=0, pady=0, 
-                            columnspan=stints)
-            time_frame.grid_columnconfigure(0, weight=1)
-            
-            # hour_frame = Frame(time_frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
-            # hour_frame.grid(row=0, column=0, sticky='news')
+            if self.target == 'plan':
+                stints = ceil(total_time / stint_time)
+                remains = int(total_time % stint_time) / stint_time
+                
+                # print(total_time, stint_time, stints, remains)
+                if remains == 0:
+                    weight = 1
+                else:
+                    weight = ceil(1 / remains)
+                # print(weight)
 
-            for j in range(total_time_in_h):
-                temp_frame = Frame(time_frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
-                temp_frame.grid(row=0, column=j, sticky='news', padx=0, pady=0)
-                temp_frame.grid_columnconfigure(0, weight=1)
-                temp_frame.grid_rowconfigure(0, weight=1)
-                self.widgets[f'frame_{driver}_h_{j + 1}'] = temp_frame
+                time_frame = Frame(frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
+                time_frame.grid(row=0, column=1, sticky='news', padx=0, pady=0, 
+                                columnspan=stints)
+                time_frame.grid_columnconfigure(0, weight=1)
+                
+                # hour_frame = Frame(time_frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
+                # hour_frame.grid(row=0, column=0, sticky='news')
 
-                temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
-                                   background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
-                                   font=HOUR_STINT_FONT)
-                temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='0 1') 
-                self.widgets[f'label_{driver}_h_{j + 1}'] = temp_label
-                time_frame.grid_columnconfigure(j, weight=1)
+                for j in range(total_time_in_h):
+                    temp_frame = Frame(time_frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                    temp_frame.grid(row=0, column=j, sticky='news', padx=0, pady=0)
+                    temp_frame.grid_columnconfigure(0, weight=1)
+                    temp_frame.grid_rowconfigure(0, weight=1)
+                    self.widgets[f'frame_{driver}_h_{j + 1}'] = temp_frame
 
-            for j in range(stints):
-                temp_frame = Frame(frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
-                temp_frame.grid(row=1, column=j + 1, sticky='news', padx=0, pady=0)
-                temp_frame.grid_columnconfigure(0, weight=1)
-                temp_frame.grid_rowconfigure(0, weight=1)
-                self.widgets[f'frame_{driver}_s_{j + 1}'] = temp_frame
+                    temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                    background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                    font=HOUR_STINT_FONT)
+                    temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='0 1') 
+                    self.widgets[f'label_{driver}_h_{j + 1}'] = temp_label
+                    time_frame.grid_columnconfigure(j, weight=1)
 
-                temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
-                                   background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
-                                   font=HOUR_STINT_FONT)
-                temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='1 0')
-                self.widgets[f'label_{driver}_s_{j + 1}'] = temp_label
+                for j in range(stints):
+                    temp_frame = Frame(frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                    temp_frame.grid(row=1, column=j + 1, sticky='news', padx=0, pady=0)
+                    temp_frame.grid_columnconfigure(0, weight=1)
+                    temp_frame.grid_rowconfigure(0, weight=1)
+                    self.widgets[f'frame_{driver}_s_{j + 1}'] = temp_frame
 
-                temp_frame = Frame(frame, background='red')
-                if self.variables['drivers_time_slots'][driver][j] == '1':
-                    temp_frame['background'] = 'green'
-                elif self.variables['drivers_time_slots'][driver][j] == '2':
-                    temp_frame['background'] = 'yellow'
-                temp_frame.grid(row=2 + i, column=j + 1, sticky='news', padx=1, pady=1)
-                self.widgets[f'frame_{driver}_{j + 1}'] = temp_frame
-                temp_frame.bind('<Button-1>', self.toggle_frame)
-                # frame.grid_columnconfigure(j + 1, weight=1)
-                frame.grid_columnconfigure(j + 1, weight=weight)
-                if j == stints - 1:
-                    frame.grid_columnconfigure(j + 1, weight=1)
+                    temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                    background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                    font=HOUR_STINT_FONT)
+                    temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='1 0')
+                    self.widgets[f'label_{driver}_s_{j + 1}'] = temp_label
+
+                    temp_frame = Frame(frame, background='red')
+                    if self.variables['drivers_time_slots'][driver][j] == '1':
+                        temp_frame['background'] = 'green'
+                    elif self.variables['drivers_time_slots'][driver][j] == '2':
+                        temp_frame['background'] = 'yellow'
+                    temp_frame.grid(row=2 + i, column=j + 1, sticky='news', padx=1, pady=1)
+                    self.widgets[f'frame_{driver}_{j + 1}'] = temp_frame
+                    temp_frame.bind('<Button-1>', self.toggle_frame)
+                    # frame.grid_columnconfigure(j + 1, weight=1)
+                    frame.grid_columnconfigure(j + 1, weight=weight)
+                    if j == stints - 1:
+                        frame.grid_columnconfigure(j + 1, weight=1)
+            elif self.target == 'actual':
+                stints_past = ceil(total_time / stint_time)
+                stints_predicted = ceil(0)
+                remains = int(total_time % stint_time) / stint_time
+                stints = stints_past + stints_predicted
+                
+                # print(total_time, stint_time, stints, remains)
+                if remains == 0:
+                    weight = 1
+                else:
+                    weight = ceil(1 / remains)
+                # print(weight)
+
+                time_frame = Frame(frame, background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG)
+                time_frame.grid(row=0, column=1, sticky='news', padx=0, pady=0, 
+                                columnspan=stints)
+                time_frame.grid_columnconfigure(0, weight=1)
+
+                for j in range(total_time_in_h):
+                    temp_frame = Frame(time_frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                    temp_frame.grid(row=0, column=j, sticky='news', padx=0, pady=0)
+                    temp_frame.grid_columnconfigure(0, weight=1)
+                    temp_frame.grid_rowconfigure(0, weight=1)
+                    self.widgets[f'frame_{driver}_h_{j + 1}'] = temp_frame
+
+                    temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                    background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                    font=HOUR_STINT_FONT)
+                    temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='0 1') 
+                    self.widgets[f'label_{driver}_h_{j + 1}'] = temp_label
+                    time_frame.grid_columnconfigure(j, weight=1)
+
+                for j in range(stints):
+                    temp_frame = Frame(frame, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_FG)
+                    temp_frame.grid(row=1, column=j + 1, sticky='news', padx=0, pady=0)
+                    temp_frame.grid_columnconfigure(0, weight=1)
+                    temp_frame.grid_rowconfigure(0, weight=1)
+                    self.widgets[f'frame_{driver}_s_{j + 1}'] = temp_frame
+
+                    temp_label = Label(temp_frame, text=f"{j + 1:02d}", 
+                                    background=CONTENT_BG_DARK if self.settings['dark_mode'] else CONTENT_BG, 
+                                    font=HOUR_STINT_FONT)
+                    temp_label.grid(row=0, column=0, sticky='news', padx=2, pady='1 0')
+                    self.widgets[f'label_{driver}_s_{j + 1}'] = temp_label
+
+                    temp_frame = Frame(frame, background='red')
+                    if self.variables['drivers_time_slots'][driver][j] == '1':
+                        temp_frame['background'] = 'green'
+                    elif self.variables['drivers_time_slots'][driver][j] == '2':
+                        temp_frame['background'] = 'yellow'
+                    temp_frame.grid(row=2 + i, column=j + 1, sticky='news', padx=1, pady=1)
+                    self.widgets[f'frame_{driver}_{j + 1}'] = temp_frame
+                    temp_frame.bind('<Button-1>', self.toggle_frame)
+                    # frame.grid_columnconfigure(j + 1, weight=1)
+                    frame.grid_columnconfigure(j + 1, weight=weight)
+                    if j == stints - 1:
+                        frame.grid_columnconfigure(j + 1, weight=1)
 
     def toggle_frame(self, event=None):
         widget = event.widget
@@ -278,68 +337,3 @@ class DatePicker:
         select_button = Button(top, text="Select", command=on_date_select)
         select_button.grid(column=0, row=2, pady=5)
 
-
-class Dropdown:
-    def __init__(self, master, root, settings, variables, elements, options=[], target='edit'):
-        self.root = root
-        self.settings = settings
-        self.variables = variables
-        self.elements = elements
-        self.master = master
-        self.options = options
-        self.widgets = {}
-        self.create_widgets()
-        self.target = target
-
-    def create_widgets(self):
-        frame = Frame(self.master, background=CONTENT_BG)
-        frame.grid(row=0, column=0, sticky='news')
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
-        self.widgets['main_frame'] = frame
-
-        if self.target == 'edit' and self.variables['race_tracker_edit_actual_weather']:
-            temp_entry = Entry(frame, textvariable=self.variables['race_tracker_edit_actual_weather'])
-            self.widgets['entry'] = temp_entry
-            temp_entry.grid(row=0, column=0, sticky='news', padx=(0, 0))
-            self.elements['race_tracker_edit_actual_weather_textbox'] = temp_entry
-            
-            temp_button = Button(frame, text='▼', command=self.open_dropdown, 
-                                 border=0, borderwidth=0, relief='flat', 
-                                 justify='center', anchor='center')
-            self.widgets['button'] = temp_button
-            temp_button.grid(row=0, column=1, sticky='news', padx=(0, 0))
-            self.elements['race_tracker_edit_actual_weather_button'] = temp_button
-
-        elif self.target == 'current' and self.variables['race_tracker_current_actual_weather']:
-            temp_entry = Entry(frame, textvariable=self.variables['race_tracker_current_actual_weather'])
-            self.widgets['entry'] = temp_entry
-            temp_entry.grid(row=0, column=0, sticky='news', padx=(0, 0))
-            self.elements['race_tracker_current_actual_weather_textbox'] = temp_entry
-
-            temp_button = Button(frame, text='▼', command=self.open_dropdown,
-                                    border=0, borderwidth=0, relief='flat',
-                                    justify='center', anchor='center')
-            self.widgets['button'] = temp_button
-            temp_button.grid(row=0, column=1, sticky='news', padx=(0, 0))
-
-            
-        else:
-            raise TrackerError("Missing variable [race_tracker_edit_actual_weather]")
-        
-    def open_dropdown(self):
-        top = Toplevel(self.root, background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_BG_DARK)
-        top.resizable(False, False)
-        top.title("Select Weather Condition")
-        
-        for option in self.options:
-            temp_button = Button(top, text=option, command=lambda option=option: self.select_option(option),
-                                 background=ENTRY_BG if self.settings['dark_mode'] else ENTRY_BG_DARK,
-                                 foreground=ENTRY_FG if self.settings['dark_mode'] else ENTRY_FG_DARK)
-            temp_button.pack(fill='x')
-
-    def select_option(self, option):
-        if self.target == 'edit':
-            self.variables['race_tracker_edit_actual_weather'].set(option)
-        elif self.target == 'plan':
-            self.variables['race_tracker_current_actual_weather'].set(option)

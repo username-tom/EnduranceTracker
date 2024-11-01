@@ -184,6 +184,7 @@ def load_menu():
     elements['menu_data'].add_command(label="Change Spreadsheet", command=change_spreadsheet)
     elements['menu_data'].add_command(label="Upload", command=lambda: update_values(current_event, data))
     elements['menu_data'].add_command(label="Download", command=download_data)
+    elements['menu_data'].add_command(label="Init Tracker", command=init_theoritical_stints)
 
 
 def load_status():
@@ -793,8 +794,11 @@ def load_tab_race():
     elements['race_tracker_edit_driver_label'] = temp_label
 
     variables['race_tracker_edit_driver'] = StringVar(value='')
-    temp_entry = Entry(edit_frame, textvariable=variables['race_tracker_edit_driver'], insertbackground='black')
-    temp_entry.grid(row=0, column=1, sticky="nsew", pady=2, padx=10)
+    # temp_entry = Entry(edit_frame, textvariable=variables['race_tracker_edit_driver'], insertbackground='black')
+    temp_entry = CTkOptionMenu(edit_frame, variable=variables['race_tracker_edit_driver'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
+    temp_entry.grid(row=0, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_edit_driver_entry'] = temp_entry
 
     temp_label = Label(edit_frame, text='Theoretical Stint #', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
@@ -820,8 +824,11 @@ def load_tab_race():
     elements['race_tracker_edit_actual_driver_label'] = temp_label
 
     variables['race_tracker_edit_actual_driver'] = StringVar(value='')
-    temp_entry = Entry(edit_frame, textvariable=variables['race_tracker_edit_actual_driver'], insertbackground='black')
-    temp_entry.grid(row=3, column=1, sticky="nsew", pady=2, padx=10)
+    # temp_entry = Entry(edit_frame, textvariable=variables['race_tracker_edit_actual_driver'], insertbackground='black')
+    temp_entry = CTkOptionMenu(edit_frame, variable=variables['race_tracker_edit_actual_driver'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
+    temp_entry.grid(row=3, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_edit_actual_driver_entry'] = temp_entry
 
     temp_label = Label(edit_frame, text='Est. Chance of Rain (%)', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
@@ -837,12 +844,19 @@ def load_tab_race():
     temp_label.grid(row=5, column=0, sticky="nsew", pady=2)
     elements['race_tracker_edit_actual_weather_label'] = temp_label
 
+    # temp_frame = Frame(edit_frame, bg=CONTENT_BG)
+    # temp_frame.grid(row=5, column=1, sticky="we")
+    # elements['race_tracker_edit_actual_weather_frame'] = temp_frame
+    # temp_frame.grid_columnconfigure(0, weight=1)
+    # temp_frame.grid_rowconfigure(0, weight=1)
+
     variables['race_tracker_edit_actual_weather'] = StringVar(value='')
-    temp_entry = CTkOptionMenu(edit_frame, variable=variables['race_tracker_edit_actual_weather'],
-                               state="readonly", corner_radius=0, button_color=BUTTON_BG)
     # temp_entry = ttk.Combobox(edit_frame, textvariable=variables['race_tracker_edit_actual_weather'],
     #                           state="readonly")
-    temp_entry.grid(row=5, column=1, sticky="nsew", pady=2, padx=10)
+    temp_entry = CTkOptionMenu(edit_frame, variable=variables['race_tracker_edit_actual_weather'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
+    temp_entry.grid(row=5, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_edit_actual_weather_entry'] = temp_entry
     # print(type(temp_entry), isinstance(temp_entry, Entry))
 
@@ -888,8 +902,11 @@ def load_tab_race():
     elements['race_tracker_current_driver_label'] = temp_label
 
     variables['race_tracker_current_driver'] = StringVar(value='')
-    temp_entry = Entry(current_frame, textvariable=variables['race_tracker_current_driver'], insertbackground='black')
-    temp_entry.grid(row=1, column=1, sticky="nsew", pady=2, padx=10)
+    # temp_entry = Entry(current_frame, textvariable=variables['race_tracker_current_driver'], insertbackground='black')
+    temp_entry = CTkOptionMenu(current_frame, variable=variables['race_tracker_current_driver'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
+    temp_entry.grid(row=1, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_current_driver_entry'] = temp_entry
 
     temp_label = Label(current_frame, text='Theoretical Stint #', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
@@ -915,8 +932,11 @@ def load_tab_race():
     elements['race_tracker_current_actual_driver_label'] = temp_label
 
     variables['race_tracker_current_actual_driver'] = StringVar(value='')
-    temp_entry = Entry(current_frame, textvariable=variables['race_tracker_current_actual_driver'], insertbackground='black')
-    temp_entry.grid(row=4, column=1, sticky="nsew", pady=2, padx=10)
+    # temp_entry = Entry(current_frame, textvariable=variables['race_tracker_current_actual_driver'], insertbackground='black')
+    temp_entry = CTkOptionMenu(current_frame, variable=variables['race_tracker_current_actual_driver'],
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
+    temp_entry.grid(row=4, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_current_actual_driver_entry'] = temp_entry
 
     temp_label = Label(current_frame, text='Est. Chance of Rain (%)', bg=CONTENT_BG, font=("Helvetica", 10, 'bold'))
@@ -934,10 +954,11 @@ def load_tab_race():
 
     variables['race_tracker_current_actual_weather'] = StringVar(value='')
     temp_entry = CTkOptionMenu(current_frame, variable=variables['race_tracker_current_actual_weather'],
-                               state="readonly", corner_radius=0, button_color=BUTTON_BG)
+                               state="readonly", corner_radius=0, button_color=BUTTON_BG,
+                               dynamic_resizing=False)
     # temp_entry = ttk.Combobox(current_frame, textvariable=variables['race_tracker_current_actual_weather'],
     #                           state="readonly")
-    temp_entry.grid(row=6, column=1, sticky="nsew", pady=2, padx=10)
+    temp_entry.grid(row=6, column=1, sticky="ew", pady=2, padx=10)
     elements['race_tracker_current_actual_weather_entry'] = temp_entry
 
     temp_frame = Frame(current_frame, bg=CONTENT_BG)
@@ -1113,6 +1134,12 @@ def add_driver():
     reset_drivers_time_slots()
     variables['add_driver'].set('')
 
+    for i in ['race_tracker_edit_driver_entry',
+              'race_tracker_edit_actual_driver_entry',
+              'race_tracker_current_driver_entry',
+              'race_tracker_current_actual_driver_entry']:
+        elements[i].configure(values=variables['drivers_raw'])
+
 def remove_driver():
     global settings, variables, elements, current_event, data
 
@@ -1130,6 +1157,12 @@ def remove_driver():
 
 
     reset_drivers_time_slots()
+
+    for i in ['race_tracker_edit_driver_entry',
+              'race_tracker_edit_actual_driver_entry',
+              'race_tracker_current_driver_entry',
+              'race_tracker_current_actual_driver_entry']:
+        elements[i].configure(values=variables['drivers_raw'])
 
 
 def reset_drivers_time_slots():
@@ -1339,6 +1372,8 @@ def current_add(event=None):
     add_to_tracker(to_add)
 
 def add_to_tracker(to_add):
+    global root, settings, variables, elements, tracker, current_event, data
+
     tracker.loc[len(tracker.index)] = to_add
     temp = tracker.iloc[2:, :].copy()
     temp.sort_values(by='Overall Time Slots', inplace=True)
@@ -1389,9 +1424,23 @@ def current_sessions(event=None):
         update_values(current_event, [variables['gap_2_start'].get()], 'B8')
     elif session_button['text'] == 'Race Started':
         session_button.configure(text='Race Over')
+
+        # add race over in data
+        to_add = [
+            variables['current_event_time'].get(),
+            variables['race_tracker_current_driver'].get(),
+            variables['race_tracker_current_theoretical_stint'].get(),
+            variables['race_tracker_current_actual_stint'].get(),
+            variables['race_tracker_current_actual_driver'].get(),
+            variables['race_tracker_current_est_chance_of_rain'].get(),
+            variables['race_tracker_current_actual_weather'].get(),
+            'RACE OVER'
+        ]
+
+        add_to_tracker(to_add)
         
 def current_back(event=None):
-    global root, settings, variables, elements, tracker, current_event
+    global root, settings, variables, elements, tracker, current_event, data
 
     session_button = elements['session_button']
     if session_button['text'] == 'Qualify':
@@ -1405,6 +1454,9 @@ def current_back(event=None):
         variables['time_to_start'].set('01:00:00')
     elif session_button['text'] == 'Race Over':
         session_button.configure(text='Race Started')
+
+        # Delete rows where "Notes" column has "RACE OVER" and reindex data
+        data[data['Notes'] != 'RACE OVER'].reset_index(drop=True, inplace=True)
 
 def current_pit(event=None):
     global root, settings, variables, elements, tracker, current_event
@@ -1537,8 +1589,16 @@ def update_variables_from_data_frame():
     for i in range(WEATHER_LENGTH):
         variables['weather'].append(get_data_frame_value(col=Z, row=i + 1))
 
-    elements['race_tracker_edit_actual_weather_entry'].configure(values=variables['weather'])
-    elements['race_tracker_current_actual_weather_entry'].configure(values=variables['weather'])
+    for i in ['race_tracker_edit_actual_weather_entry',
+              'race_tracker_current_actual_weather_entry']:
+        elements[i].configure(values=variables['weather'])
+
+    for i in ['race_tracker_edit_driver_entry',
+              'race_tracker_edit_actual_driver_entry',
+              'race_tracker_current_driver_entry',
+              'race_tracker_current_actual_driver_entry']:
+        elements[i].configure(values=variables['drivers_raw'])
+
 
     calculate_avg_stint_time()
 
@@ -1596,6 +1656,7 @@ def update_est(event=None):
     mst = cst - timedelta(hours=1)
     variables['event_time_mst'].set(mst.strftime('%m-%d-%Y %H:%M:%S %p'))
 
+    update_data_frame_value(index='INDEX_EVENT_TIME_EST', value=variables['event_time_est'].get())
     update_values(current_event, [variables['event_time_est'].get()], 'B2')
 
 def update_cst(event=None):
@@ -1614,6 +1675,7 @@ def update_cst(event=None):
     mst = cst - timedelta(hours=1)
     variables['event_time_mst'].set(mst.strftime('%m-%d-%Y %H:%M:%S %p'))
     
+    update_data_frame_value(index='INDEX_EVENT_TIME_EST', value=variables['event_time_est'].get())
     update_values(current_event, [variables['event_time_est'].get()], 'B2')
 
 def update_mst(event=None):
@@ -1632,6 +1694,7 @@ def update_mst(event=None):
     est = cst + timedelta(hours=1)
     variables['event_time_est'].set(est.strftime('%m-%d-%Y %H:%M:%S %p'))
 
+    update_data_frame_value(index='INDEX_EVENT_TIME_EST', value=variables['event_time_est'].get())
     update_values(current_event, [variables['event_time_est'].get()], 'B2')
 
 def update_event_name(event=None):
@@ -1640,6 +1703,7 @@ def update_event_name(event=None):
     if variables['event'].get() == '':
         return
     
+    update_data_frame_value(index='INDEX_EVENT_NAME', value=variables['event'].get())
     update_values(current_event, [variables['event'].get()], 'B1')
 
 def update_car(event=None):
@@ -1648,6 +1712,7 @@ def update_car(event=None):
     if variables['car'].get() == '':
         return
     
+    update_data_frame_value(index='INDEX_CAR', value=variables['car'].get())
     update_values(current_event, [variables['car'].get()], 'B3')
 
 def update_total_time(event=None):
@@ -1656,10 +1721,14 @@ def update_total_time(event=None):
     total_sum = timedelta(hours=int(variables['total_time_h'].get()),
                           minutes=int(variables['total_time_m'].get()),
                           seconds=int(variables['total_time_s'].get()))
-    variables['total_time_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['total_time_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['total_time_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['total_time_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['total_time_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['total_time_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
     
+    update_data_frame_value(index='INDEX_TOTAL_TIME', 
+                            value=f'{variables['total_time_h'].get()}:' 
+                                  f'{variables['total_time_m'].get()}:' 
+                                  f'{variables['total_time_s'].get()}')
     update_values(current_event, 
                   [f'{variables['total_time_h'].get()}:'
                    f'{variables['total_time_m'].get()}:'
@@ -1672,6 +1741,7 @@ def update_current_position(event=None):
     if variables['current_position'].get() == '':
         return
     
+    update_data_frame_value(index='INDEX_CURRENT_POSITION', value=variables['current_position'].get())
     update_values(current_event, [variables['current_position'].get()], 'B5')
 
 def update_total_drivers(event=None):
@@ -1680,6 +1750,7 @@ def update_total_drivers(event=None):
     if variables['total_drivers'].get() == '':
         return
     
+    update_data_frame_value(index='INDEX_TOTAL_DRIVER', value=variables['total_drivers'].get())
     update_values(current_event, [variables['total_drivers'].get()], 'B6')
 
 def update_gap_2_start(event=None):
@@ -1688,10 +1759,14 @@ def update_gap_2_start(event=None):
     total_sum = timedelta(hours=int(variables['gap_2_start_h'].get()),
                           minutes=int(variables['gap_2_start_m'].get()),
                           seconds=int(variables['gap_2_start_s'].get()))
-    variables['gap_2_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['gap_2_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['gap_2_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['gap_2_start_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['gap_2_start_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['gap_2_start_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
     
+    update_data_frame_value(index='INDEX_GAP_TO_RACE_START', 
+                            value=f'{variables['gap_2_start_h'].get()}:' 
+                                  f'{variables['gap_2_start_m'].get()}:' 
+                                  f'{variables['gap_2_start_s'].get()}')
     update_values(current_event, 
                   [f'{variables['gap_2_start_h'].get()}:'
                    f'{variables['gap_2_start_m'].get()}:'
@@ -1705,10 +1780,14 @@ def update_practice_duration(event=None):
                             minutes=int(variables['practice_duration_m'].get()),
                             seconds=int(variables['practice_duration_s'].get()))
     
-    variables['practice_duration_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['practice_duration_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['practice_duration_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['practice_duration_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['practice_duration_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['practice_duration_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_PRACTICE_DURATION', 
+                            value=f'{variables['practice_duration_h'].get()}:' 
+                                  f'{variables['practice_duration_m'].get()}:' 
+                                  f'{variables['practice_duration_s'].get()}')
     update_values(current_event,
                     [f'{variables['practice_duration_h'].get()}:'
                      f'{variables['practice_duration_m'].get()}:'
@@ -1722,10 +1801,14 @@ def update_qualify_duration(event=None):
                             minutes=int(variables['qualify_duration_m'].get()),
                             seconds=int(variables['qualify_duration_s'].get()))
     
-    variables['qualify_duration_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['qualify_duration_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['qualify_duration_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['qualify_duration_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['qualify_duration_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['qualify_duration_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_QUALIFY_DURATION', 
+                            value=f'{variables['qualify_duration_h'].get()}:' 
+                                  f'{variables['qualify_duration_m'].get()}:' 
+                                  f'{variables['qualify_duration_s'].get()}')
     update_values(current_event,
                     [f'{variables['qualify_duration_h'].get()}:'
                      f'{variables['qualify_duration_m'].get()}:'
@@ -1739,10 +1822,14 @@ def update_time_to_green(event=None):
                             minutes=int(variables['time_to_green_m'].get()),
                             seconds=int(variables['time_to_green_s'].get()))
     
-    variables['time_to_green_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['time_to_green_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['time_to_green_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['time_to_green_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['time_to_green_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['time_to_green_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_TIME_TO_GREEN', 
+                            value=f'{variables['time_to_green_h'].get()}:' 
+                                  f'{variables['time_to_green_m'].get()}:' 
+                                  f'{variables['time_to_green_s'].get()}')
     update_values(current_event,
                     [f'{variables['time_to_green_h'].get()}:'
                      f'{variables['time_to_green_m'].get()}:'
@@ -1756,10 +1843,14 @@ def update_time_to_start(event=None):
                             minutes=int(variables['time_to_start_m'].get()),
                             seconds=int(variables['time_to_start_s'].get()))
     
-    variables['time_to_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['time_to_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['time_to_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['time_to_start_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['time_to_start_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['time_to_start_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_TIME_TO_START', 
+                            value=f'{variables['time_to_start_h'].get()}:' 
+                                  f'{variables['time_to_start_m'].get()}:' 
+                                  f'{variables['time_to_start_s'].get()}')
     update_values(current_event,
                     [f'{variables['time_to_start_h'].get()}:'
                      f'{variables['time_to_start_m'].get()}:'
@@ -1773,10 +1864,14 @@ def update_sim_time_start(event=None):
                             minutes=int(variables['sim_time_start_m'].get()),
                             seconds=int(variables['sim_time_start_s'].get()))
     
-    variables['sim_time_start_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['sim_time_start_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['sim_time_start_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['sim_time_start_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['sim_time_start_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['sim_time_start_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_SIM_TIME_START', 
+                            value=f'{variables['sim_time_start_h'].get()}:' 
+                                  f'{variables['sim_time_start_m'].get()}:' 
+                                  f'{variables['sim_time_start_s'].get()}')
     update_values(current_event,
                     [f'{variables['sim_time_start_h'].get()}:'
                      f'{variables['sim_time_start_m'].get()}:'
@@ -1790,10 +1885,14 @@ def update_theoretical_stint_time(event=None):
                             minutes=int(variables['theoretical_stint_time_m'].get()),
                             seconds=int(variables['theoretical_stint_time_s'].get()))
     
-    variables['theoretical_stint_time_h'].set(f'{int(total_sum.seconds // 3600):02d}')
-    variables['theoretical_stint_time_m'].set(f'{int((total_sum.seconds // 60) % 60):02d}')
-    variables['theoretical_stint_time_s'].set(f'{int(total_sum.seconds % 60):02d}')
+    variables['theoretical_stint_time_h'].set(f'{int(total_sum.total_seconds() // 3600):02d}')
+    variables['theoretical_stint_time_m'].set(f'{int((total_sum.total_seconds() // 60) % 60):02d}')
+    variables['theoretical_stint_time_s'].set(f'{int(total_sum.total_seconds() % 60):02d}')
 
+    update_data_frame_value(index='INDEX_THEORETICAL_STINT_TIME', 
+                            value=f'{variables['theoretical_stint_time_h'].get()}:' 
+                                  f'{variables['theoretical_stint_time_m'].get()}:' 
+                                  f'{variables['theoretical_stint_time_s'].get()}')
     update_values(current_event,
                     [f'{variables['theoretical_stint_time_h'].get()}:'
                      f'{variables['theoretical_stint_time_m'].get()}:'
@@ -1806,7 +1905,56 @@ def update_average_stint_time(event=None):
     if variables['average_stint_time'].get() == '':
         return
     
+    update_data_frame_value(index='INDEX_AVERAGE_STINT_TIME', value=variables['average_stint_time'].get())
     update_values(current_event, [variables['average_stint_time'].get()], 'B15')
+
+def init_theoritical_stints(event=None):
+    global root, settings, variables, elements, data, tracker
+
+    tracker.iloc[:, 1:] = ''
+    tracker.iloc[2:, 0] = ''
+
+    total_time = get_delta('total_time')
+    total_time_mins = ceil(total_time.total_seconds() / 60)
+    theoretical_stint_time = get_delta('theoretical_stint_time')
+    theoretical_stint_time_mins = ceil(theoretical_stint_time.total_seconds() / 60)
+    stints = ceil(total_time / theoretical_stint_time)
+
+    index = 2
+    for i in range(total_time_mins):
+        if i % 15 == 0:
+            slot = int(i / 15)
+            time = timedelta(minutes=15) * slot
+            tracker.iloc[index, 0] = format_timedelta(time)
+            index += 1
+        
+        elif i % ceil(theoretical_stint_time_mins) == 0:
+            time = timedelta(minutes=i)
+            tracker.iloc[index, 0] = format_timedelta(time)
+            index += 1
+
+    for i, t in enumerate(tracker['Overall Time Slots'][2:]):
+        print(i, t)
+        if t == '':
+            break
+        if get_delta(t) > total_time:
+            break
+
+        current_time = get_delta(t)
+        current_time_mins = ceil(current_time.total_seconds() / 60)
+
+        for j in range(stints):
+            if j + theoretical_stint_time_mins <= current_time_mins <= (j + 1) * theoretical_stint_time_mins:
+                tracker.at[i + 2, "Theoretical Stint #"] = j + 1
+
+                for driver in variables['drivers_raw']:
+                    if int(variables['drivers_time_slots'][driver][j]) == 1:
+                        tracker.at[i + 2, "Driver"] = driver
+                        break
+                break
+
+        
+    print(tracker)
 
 def dark_mode():
     global root, settings, variables, elements, \

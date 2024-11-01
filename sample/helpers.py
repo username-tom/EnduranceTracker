@@ -20,6 +20,7 @@ from time import sleep
 from pandas import DataFrame, to_datetime, concat
 from tkinter import messagebox
 import numpy as np
+from datetime import timedelta
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -259,6 +260,12 @@ def get_data_frame_value(row=0, col=0, index=''):
 def tz_diff(dt, tz1, tz2):
     date = to_datetime(dt)
     return date.tz_localize(tz1).tz_convert(tz2)
+
+
+def format_timedelta(t: timedelta):
+    return f'{int(t.total_seconds() // 3600):02d}:' \
+           f'{int((t.total_seconds() // 60) % 60):02d}:' \
+           f'{int(t.total_seconds() % 60):02d}'
 
 
 # Test the functions
