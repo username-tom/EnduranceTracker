@@ -18,6 +18,7 @@ GEOMETRY = get_config('general', 'geometry')
 STATUS_TIMES = get_config('settings', 'times')
 SHEET_ID = get_config('settings', 'sheet_id')
 DARK_MODE = True if get_config('general', 'dark_mode').lower() == 'true' else False
+TEMPLATE_ID = get_config('template', 'id')
 
 SAMPLE_RANGE_NAME = "A1:Z200"
 MAX_DRIVER = 8

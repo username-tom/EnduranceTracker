@@ -1,3 +1,7 @@
+'''
+Core functions for Endurance Tracker
+'''
+
 from docs.conf import *
 from tkinter import *
 from tkinter import ttk

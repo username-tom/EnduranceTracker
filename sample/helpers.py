@@ -1,3 +1,8 @@
+'''
+Helpers for Google Sheets API
+'''
+
+
 import sys
 import os
 OWD = os.getcwd()
@@ -46,7 +51,7 @@ def login():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
-def get_sheets():
+def get_sheets(id=SHEET_ID):
     global creds
 
     if creds is None:
@@ -58,7 +63,7 @@ def get_sheets():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.get(spreadsheetId=SHEET_ID).execute()
+        result = sheet.get(spreadsheetId=id).execute()
         sheets = result.get('sheets', [])
 
         if not sheets:
@@ -76,7 +81,7 @@ def get_sheets():
         return
 
 def get_values(s="Template", range=SAMPLE_RANGE_NAME):
-    global creds, data
+    global creds, data, SHEET_ID
 
     try:
         service = build("sheets", "v4", credentials=creds)
@@ -103,7 +108,7 @@ def get_values(s="Template", range=SAMPLE_RANGE_NAME):
         return data
 
 def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
-    global creds, data
+    global creds, data, SHEET_ID
 
     if v is None:
         raise TrackerError("Value to update is None")
@@ -144,14 +149,82 @@ def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
             .execute()
         )
 
-        print(result.get('updatedRange', []))
+        # print(result.get('updatedRange', []))
 
-        if str(result.get('updatedRange', [])).split('!')[0] == s.strip("\'"):
+        if str(result.get('updatedRange', [])).split('!')[0].strip("\'") == s:
             print("Value updated")
         else:
+            # print(str(result.get('updatedRange', [])).split('!')[0].strip("\'"), s)
             print("Value not updated")
     except HttpError as err:
         messagebox.showerror("Error", err)
+
+
+def copy_template_to_new_sheet(template_id, new_sheet_id):
+    global creds
+
+    try:
+        # if "Template" in get_sheets():
+        #     # Delete the template sheet if it exists
+        #     delete_event("Template")
+
+        service = build('sheets', 'v4', credentials=creds)
+        # Get the template sheet
+        template_sheet = service.spreadsheets().get(spreadsheetId=template_id).execute()
+        # template_sheet_data = template_sheet['sheets'][0]['properties']['title']
+        template_sheet_data = "Template"
+
+        # Copy the template sheet to the new spreadsheet
+        request = {
+            'destinationSpreadsheetId': new_sheet_id
+        }
+        response = service.spreadsheets().sheets().copyTo(
+            spreadsheetId=template_id,
+            sheetId=template_sheet['sheets'][0]['properties']['sheetId'],
+            body=request
+        ).execute()
+
+        # Rename the copied sheet to the first page of the new spreadsheet
+        new_sheet_title = response['title']
+        service.spreadsheets().batchUpdate(
+            spreadsheetId=new_sheet_id,
+            body={
+                'requests': [
+                    {
+                        'updateSheetProperties': {
+                            'properties': {
+                                'sheetId': response['sheetId'],
+                                'title': template_sheet_data
+                            },
+                            'fields': 'title'
+                        }
+                    }
+                ]
+            }
+        ).execute()
+
+        # Get all sheets in the new spreadsheet
+        new_sheets = service.spreadsheets().get(spreadsheetId=new_sheet_id).execute().get('sheets', [])
+
+        # Delete all sheets except the copied template
+        requests = []
+        for sheet in new_sheets:
+            if sheet['properties']['title'] != template_sheet_data:
+                requests.append({
+                    'deleteSheet': {
+                        'sheetId': sheet['properties']['sheetId']
+                    }
+            })
+
+        if requests:
+            service.spreadsheets().batchUpdate(
+            spreadsheetId=new_sheet_id,
+            body={'requests': requests}
+            ).execute()
+
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None
 
 def add_event(name=''):
     global creds, data

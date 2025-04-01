@@ -1,8 +1,18 @@
+'''
+Frontend for the Endurance Tracker
+
+Author: Tom Wu
+Date: 2025-04-01
+Version: 0.0.1
+'''
+
 import sys
 import os
 OWD = os.getcwd()
 # print(OWD)
 sys.path.append(OWD)
+sys.path.append(f'{OWD}/sample')
+sys.path.append(f'{OWD}/docs')
 os.chdir(OWD)
 
 from docs.conf import *
@@ -277,7 +287,7 @@ def load_main_content():
     load_tab_plan()
 
     tab_race = Frame(main_notebook, bg=CONTENT_BG)
-    main_notebook.add(tab_race, text="Race")
+    main_notebook.add(tab_race, text="Race Notes")
     elements['tab_race'] = tab_race
     load_tab_race()
 
@@ -777,7 +787,7 @@ def load_tab_race():
     edit_frame.grid_rowconfigure(6, weight=2)
     edit_frame.grid_columnconfigure((0, 1), weight=1)
 
-    temp_label = Label(input_frame, bg=CONTENT_BG, text='Current', font=("Helvetica", 16, 'bold'))
+    temp_label = Label(input_frame, bg=CONTENT_BG, text='Add', font=("Helvetica", 16, 'bold'))
     current_frame = LabelFrame(input_frame, bg=CONTENT_BG, 
                                labelwidget=temp_label)
     current_frame.grid(row=7, column=0, rowspan=7, sticky="nsew")
@@ -1009,10 +1019,12 @@ def init_time_scheduler():
         elements['plan_frame_actual'].grid_rowconfigure(i, weight=0)
     root.update()
 
-    plan_content = TimeScheduler(root, settings, variables, elements, data, target='plan', current_event=current_event)
+    plan_content = TimeScheduler(root, settings, variables, elements, data, 
+                                 target='plan', current_event=current_event)
     elements['plan_content'] = plan_content
 
-    actual_content = TimeScheduler(root, settings, variables, elements, data, target='actual', current_event=current_event)
+    actual_content = TimeScheduler(root, settings, variables, elements, data, 
+                                   target='actual', current_event=current_event)
     elements['actual_content'] = actual_content
 
     init_dark_mode()
@@ -1061,11 +1073,12 @@ def update_status():
     # root.update()
     while settings['status_state']:
 
+        # handling timezones
         variables['time_gmt'].set(datetime.now(pytz.timezone('GMT')).strftime('%H:%M:%S'))
         for i in STATUS_TIMES.split(","):
             variables['time_' + i.lower()].set(datetime.now().astimezone(pytz.timezone(i)).strftime('%H:%M:%S'))
-        sleep(1)
         
+        # handling race times
         race_length = get_delta('total_time')
         now = datetime.now(pytz.utc)
         event_start = tz_diff(variables['event_time_est'].get(), 'US/Eastern', 'GMT')
@@ -1110,6 +1123,10 @@ def update_status():
             variables['current_session'].set('Race Over')
             variables['current_event_time'].set('00:00:00')
 
+        # handling elements
+        download_data()
+
+        sleep(1)
 
 
 def add_driver():
@@ -1201,15 +1218,19 @@ def on_closing():
 def change_spreadsheet():
     global SHEET_ID, root, settings, variables, elements
 
-    id = simpledialog.askstring("Attention", "Enter new spreadsheet ID")
+    id = simpledialog.askstring("Attention", 
+                                f"Enter new spreadsheet ID")
 
     SHEET_ID = id
-    update_sheets_list()
 
-def update_sheets_list(index=0):
-    global root, settings, variables, elements, data
+    copy_template_to_new_sheet(template_id=TEMPLATE_ID, new_sheet_id=SHEET_ID)
+    update_sheets_list(0, SHEET_ID)
 
-    variables['all_events_raw'] = get_sheets()
+def update_sheets_list(index=0, id=SHEET_ID):
+    global root, settings, variables, elements, data, SHEET_ID, current_event
+
+    variables['all_events_raw'] = get_sheets(id)
+    print(variables['all_events_raw'])
     variables['all_events'].set(list(variables['all_events_raw'].keys()))
     elements['listbox_events'].update()
     elements['listbox_events'].selection_clear(0, 'end')
@@ -1229,14 +1250,16 @@ def change_sheet(event=None):
     data = get_values(s=current_event, range='A1:Z200')
     # print(current_event, data)
 
-    update_variables_from_data_frame()
+    update_variables_from_data_frame(reset_slots=True)
     init_time_scheduler()
     change_race_slot()
+
 
 def change_race_slot(event=None):
     global root, settings, variables, elements, data, tracker
 
     slots_list = elements['race_tracker_slots']
+    slots_list.focus_set()
     selected = slots_list.curselection()
     if len(selected) == 0:
         return
@@ -1251,6 +1274,11 @@ def change_race_slot(event=None):
     variables['race_tracker_edit_actual_weather'].set(tracker.loc[slot, 'Act. Weather at Time'])
     elements['race_tracker_edit_notes_text'].delete('1.0', 'end')
     elements['race_tracker_edit_notes_text'].insert('end', str(tracker.loc[slot, 'Notes']))
+
+def update_race_slot(event=None):
+    global root, settings, variables, elements, data, tracker
+
+
 
 def add_event_popup():
     global root, settings, variables, elements
@@ -1516,7 +1544,7 @@ def current_copy(event=None):
     variables['race_tracker_current_actual_weather'].set(
         variables['race_tracker_edit_actual_weather'].get())
 
-def update_variables_from_data_frame():
+def update_variables_from_data_frame(reset_slots=False):
     global root, settings, variables, elements, data, creds, tracker
 
     variables['event'].set(get_data_frame_value(index='INDEX_EVENT_NAME'))
@@ -1583,7 +1611,8 @@ def update_variables_from_data_frame():
             break
     variables['race_tracker_slots'].set(variables['race_tracker_slots_raw'])
     slots_list = elements['race_tracker_slots']
-    slots_list.selection_set(0)
+    if reset_slots:
+        slots_list.selection_set(0)
     change_race_slot()
 
     for i in range(WEATHER_LENGTH):
@@ -1631,7 +1660,6 @@ def download_data(event=None):
 
     data = get_values(s=current_event, range='A1:Z200')
     update_variables_from_data_frame()
-    change_race_slot()
 
 def copy_time(event=None):
     global root, settings, variables, elements
@@ -2036,7 +2064,7 @@ def dark_mode():
         for widget in actual.widgets:
             if isinstance(actual.widgets[widget], Label):
                 actual.widgets[widget].configure(bg=CONTENT_BG_DARK, fg=ENTRY_FG_DARK)
-            elif isinstance(plan.widgets[widget], Frame):
+            elif isinstance(actual.widgets[widget], Frame):
                 if len(widget.split('_')) == 4:
                     actual.widgets[widget].configure(bg=ENTRY_FG_DARK)
 
