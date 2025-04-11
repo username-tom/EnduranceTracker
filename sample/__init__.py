@@ -3,7 +3,7 @@ Frontend for the Endurance Tracker
 
 Author: Tom Wu
 Date: 2025-04-01
-Version: 0.0.1
+Version: 0.0.2
 '''
 
 import sys

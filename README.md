@@ -1,8 +1,6 @@
 # EnduranceTracker
 
-GUI for endurance race tracker using Google Sheet.
-
-Currently only using developmental Goolge APIs and needs to relog in every week or so.
+GUI for endurance race tracker using sockets.
 
 ---
 
