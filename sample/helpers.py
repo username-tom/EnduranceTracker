@@ -1,5 +1,5 @@
 '''
-Helpers for Google Sheets API
+Helpers for Server API
 '''
 
 
@@ -16,319 +16,22 @@ class TrackerError(Exception):
 
 import os.path
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from time import sleep
 from pandas import DataFrame, to_datetime, concat
 from tkinter import messagebox
 import numpy as np
 from datetime import timedelta
+import socket
+from threading import Thread
+import json
+from math import ceil
 
-# If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 creds = None
-data = DataFrame()
 
 def login():
     global creds
 
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "client_secrets.json", SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
-
-def get_sheets(id=SHEET_ID):
-    global creds
-
-    if creds is None:
-        messagebox.showerror("Error", "Credentials is None")
-        return
-
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.get(spreadsheetId=id).execute()
-        sheets = result.get('sheets', [])
-
-        if not sheets:
-            messagebox.showerror("Error", "No sheets found.")
-            return
-
-        to_return = {}
-        for sheet in sheets:
-            # print(sheet.get('properties', {}).get('title', ''))
-            to_return[sheet.get('properties', {}).get('title', '')] = sheet.get('properties', {}).get('sheetId', '')
-        # print(to_return)
-        return to_return
-    except HttpError as err:
-        messagebox.showerror("Error", err)
-        return
-
-def get_values(s="Template", range=SAMPLE_RANGE_NAME):
-    global creds, data, SHEET_ID
-
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = (
-            sheet.values()
-            .get(spreadsheetId=SHEET_ID, range=f"{s}!{range}")
-            .execute()
-        )
-        values = result.get("values", [])
-
-        if not values:
-            messagebox.showerror("Error", "No data found.")
-            return
-
-        # print(values[0][0])
-    except HttpError as err:
-        messagebox.showerror("Error", err)
-    else:
-        data = DataFrame(data=values)
-        # print(data)
-        return data
-
-def update_values(s="Template", v=None, range=SAMPLE_RANGE_NAME):
-    global creds, data, SHEET_ID
-
-    if v is None:
-        raise TrackerError("Value to update is None")
-    
-    if isinstance(v, DataFrame):
-        v = v.values.tolist()
-        body = {
-            'values': v
-        }
-    elif v is None:
-        body = {
-            'values': data.values.tolist()
-        }
-    elif isinstance(v, list):
-        body = {
-            'values': DataFrame(data=v).T.values.tolist()
-        }
-    else:
-        body = {
-            'values': DataFrame(data=v).values.tolist()
-        }
-
-    # print(body)
-    
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        # body = {
-        #     'values': v
-        # }
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = (
-            sheet.values()
-            .update(spreadsheetId=SHEET_ID, range=f"{s}!{range}", 
-                    body=body, valueInputOption='RAW')
-            .execute()
-        )
-
-        # print(result.get('updatedRange', []))
-
-        if str(result.get('updatedRange', [])).split('!')[0].strip("\'") == s:
-            print("Value updated")
-        else:
-            # print(str(result.get('updatedRange', [])).split('!')[0].strip("\'"), s)
-            print("Value not updated")
-    except HttpError as err:
-        messagebox.showerror("Error", err)
-
-
-def copy_template_to_new_sheet(template_id, new_sheet_id):
-    global creds
-
-    try:
-        # if "Template" in get_sheets():
-        #     # Delete the template sheet if it exists
-        #     delete_event("Template")
-
-        service = build('sheets', 'v4', credentials=creds)
-        # Get the template sheet
-        template_sheet = service.spreadsheets().get(spreadsheetId=template_id).execute()
-        # template_sheet_data = template_sheet['sheets'][0]['properties']['title']
-        template_sheet_data = "Template"
-
-        # Copy the template sheet to the new spreadsheet
-        request = {
-            'destinationSpreadsheetId': new_sheet_id
-        }
-        response = service.spreadsheets().sheets().copyTo(
-            spreadsheetId=template_id,
-            sheetId=template_sheet['sheets'][0]['properties']['sheetId'],
-            body=request
-        ).execute()
-
-        # Rename the copied sheet to the first page of the new spreadsheet
-        new_sheet_title = response['title']
-        service.spreadsheets().batchUpdate(
-            spreadsheetId=new_sheet_id,
-            body={
-                'requests': [
-                    {
-                        'updateSheetProperties': {
-                            'properties': {
-                                'sheetId': response['sheetId'],
-                                'title': template_sheet_data
-                            },
-                            'fields': 'title'
-                        }
-                    }
-                ]
-            }
-        ).execute()
-
-        # Get all sheets in the new spreadsheet
-        new_sheets = service.spreadsheets().get(spreadsheetId=new_sheet_id).execute().get('sheets', [])
-
-        # Delete all sheets except the copied template
-        requests = []
-        for sheet in new_sheets:
-            if sheet['properties']['title'] != template_sheet_data:
-                requests.append({
-                    'deleteSheet': {
-                        'sheetId': sheet['properties']['sheetId']
-                    }
-            })
-
-        if requests:
-            service.spreadsheets().batchUpdate(
-            spreadsheetId=new_sheet_id,
-            body={'requests': requests}
-            ).execute()
-
-    except HttpError as error:
-        print(f"An error occurred: {error}")
-        return None
-
-def add_event(name=''):
-    global creds, data
-
-    if name == '':
-        messagebox.showerror("Error", "Event name is empty")
-        return
-    
-    if creds is None:
-        messagebox.showerror("Error", "Credentials is None")
-        return
-    
-    get_values('Template')
-    
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        body = {
-            "requests":{
-                "addSheet":{
-                    "properties":{
-                        "title":name
-                    }
-                }
-            }
-        }
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = (
-            sheet.batchUpdate(spreadsheetId=SHEET_ID, body=body)
-            .execute()
-        )
-
-        #TODO: add result check here
-
-    except HttpError as err:
-        messagebox.showerror("Failed to add new event", err)
-    else:
-        print("Event added")
-
-        update_data_frame_value(0, 1, value=name)
-        update_values(name, data)
-
-def delete_event(name=''):
-    global creds
-
-    if name == '':
-        messagebox.showerror("Error", "Event name is empty")
-        return
-    
-    if creds is None:
-        messagebox.showerror("Error", "Credentials is None")
-        return
-    
-    try:
-        service = build("sheets", "v4", credentials=creds)
-
-        body = {
-            "requests":{
-                "deleteSheet":{
-                    "sheetId":name
-                }
-            }
-        }
-
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = (
-            sheet.batchUpdate(spreadsheetId=SHEET_ID, body=body)
-            .execute()
-        )
-    except HttpError as err:
-        messagebox.showerror("Failed to delete event", err)
-    else:
-        print("Event deleted")
-
-
-def update_data_frame_value(row=0, col=0, index='', value=None):
-    global data
-
-    if data is None:
-        messagebox.showerror("Error", "Data frame is None")
-        return
-
-    if value is None:
-        messagebox.showerror("Error", "Value to update is None")
-        return
-    
-    if index not in INDEX:
-        data.at[row, col] = value
-    else:
-        data.at[INDEX[index][0], INDEX[index][1]] = value
-
-def get_data_frame_value(row=0, col=0, index=''):
-    global data
-
-    if data is None:
-        raise TrackerError("Data frame is None")
-
-    if index not in INDEX:
-        return data.at[row, col]
-    else:
-        return data.at[INDEX[index][0], INDEX[index][1]]
 
 def tz_diff(dt, tz1, tz2):
     date = to_datetime(dt)
@@ -340,12 +43,362 @@ def format_timedelta(t: timedelta):
            f'{int((t.total_seconds() // 60) % 60):02d}:' \
            f'{int(t.total_seconds() % 60):02d}'
 
+def text2time(text, unit='s'):
+    t = text.lower().strip()
+    if 'h' in t:
+        h = t.split('h')[0]
+        t = t.split('h')[1]
+    if 'm' in t:
+        m = t.split('m')[0]
+        t = t.split('m')[1]
+    if 's' in t:
+        s = t.split('s')[0]
+        
+    if ':' in t:
+        t = t.split(':')
+        if len(t) == 3:
+            h, m, s = t[0], t[1], t[2]
+        elif len(t) == 2:
+            h, m = t[0], t[1]
+            s = 0
+        else:
+            raise ValueError("Invalid time format")
+    
+    if unit == 's':
+        return int(h) * 3600 + int(m) * 60 + int(s)
+    elif unit == 'm':
+        return int(h) * 60 + int(m) + int(s) / 60
+    elif unit == 'h':
+        return int(h) + int(m) / 60 + int(s) / 3600
 
-# Test the functions
-# login()
-# if creds:
-#     get_sheets()
-    # get_values('Template')
-    # update_data_frame_value(0, 1, value='2024 24H SPA')
-    # update_values('Template', data)
-    # add_event('2024 24H SPA')
+class Driver:
+    def __init__(self, 
+                 name='', 
+                 tz='US/Pacific',
+                 available=None,
+                 maybe=None,
+                 unavailable=None):
+        self.name = name
+        self.time_zone = tz
+        self.available = available
+        self.maybe = maybe
+        self.unavailable = unavailable
+
+    def __str__(self):
+        return f'{self.name} - {self.team} @ {self.time_zone}'
+    
+class TrackerSlot:
+    def __init__(self, 
+                 time_slot='',
+                 planned_driver='',
+                 planned_stint='',
+                 actual_driver='',
+                 actual_stint='',
+                 est_rain=0,
+                 act_weather='',
+                 act_track_condition='',
+                 notes=''):
+        self.time_slot = time_slot
+        self.planned_driver = planned_driver
+        self.planned_stint = planned_stint
+        self.actual_driver = actual_driver
+        self.actual_stint = actual_stint
+        self.est_rain = est_rain
+        self.act_weather = act_weather
+        self.act_track_condition = act_track_condition
+        self.notes = notes
+
+    def __str__(self):
+        return f'{self.time_slot}\n{self.planned_driver}\n\
+                 {self.planned_stint}\n{self.actual_driver}\n\
+                 {self.actual_stint}\n{self.est_rain}\n\
+                 {self.act_weather}\n{self.act_track_condition}\n{self.notes}'
+
+
+class TrackerClient:
+    def __init__(self, host="127.0.0.1", port=65432, data_dir=DATA_DIR):
+        self.host = host
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.buffer_size = 1024
+        self.listener = None
+        self.listener_interval = 0.1  # seconds
+        self.data_raw = None
+        self.data = {}
+        self.data_dir = data_dir
+        self.conn = None
+        self.addr = None
+        self.status = "disconnected"
+        
+    def connect(self):
+        print(f"Connecting to server at {self.host}:{self.port}...")
+        try:
+            self.socket.connect((self.host, self.port))
+        except socket.error as e:
+            print(f"Error connecting to socket: {e}")
+            return
+        else:
+            print(f"Socket connected to {self.host}:{self.port}")
+
+            self.start_listener()
+            self.status = "connected"
+
+    def send(self, message):
+        try:
+            self.socket.sendall(message.encode())
+        except socket.error as e:
+            print(f"Error sending message: {e}")
+            return False
+        else:
+            print(f"Message sent to {self.host}:{self.port} - {message}")
+
+    def receive(self):
+        print(f"Waiting for message from {self.host}:{self.port}...")
+        try:
+            data = self.socket.recv(self.buffer_size)
+        except socket.error as e:
+            print(f"Error receiving message: {e}")
+            return None
+        else:
+            print(f"Message received from {self.host}:{self.port} - {data.decode()}")
+            return data.decode()
+
+    def start_listener(self):
+        self.conn, self.addr = self.socket.accept()
+        print(f"Connection accepted from {self.addr}")
+
+        self.listener = Thread(target=self.listening)
+        self.listener.start()
+
+    def stop_listener(self):
+        if self.listener:
+            # self.listener.join()
+            self.listener = None
+        print("Listener stopped")
+
+    def listening(self):
+        while self.listener is not None:
+            try:
+                msg = self.receive()
+                if msg is None:
+                    break
+                print(f"Received message: {msg}")
+                # TODO: Process the received message
+            except socket.error as e:
+                print(f"Error receiving data: {e}")
+                break
+            sleep(self.listener_interval)
+        
+    def disconnect(self):
+        print(f"Disconnecting from {self.host}:{self.port}...")
+        self.stop_listener()
+        try:
+            self.socket.close()
+        except socket.error as e:
+            print(f"Error closing socket: {e}")
+            return
+        else:
+            print(f"Socket disconnected from {self.host}:{self.port}")
+            self.status = "disconnected"
+
+    def update_local_data(self):
+        self.parse_data()
+        try:
+            with open(self.data_dir, 'w') as f:
+                json.dump(self.data, f)
+        except IOError as e:
+            print(f"Error updating local data: {e}")
+            return
+        else:
+            print("Local data updated successfully")
+
+    def get_local_data(self):
+        try:
+            with open(self.data_dir, 'r') as f:
+                data = json.load(f)
+        except IOError as e:
+            print(f"Error reading local data: {e}")
+        else:
+            print("Local data read successfully")
+            self.data_raw = data
+            self.process_data()
+
+    def process_data(self):
+        for key in DATA_ITEMS:
+            if key not in self.data_raw:
+                raise TrackerError(f"Missing data item: {key}")
+            else:
+                self.data[key] = self.data_raw[key]
+
+        if 'drivers' not in self.data_raw:
+            raise TrackerError("Missing drivers data")
+        if 'trackers' not in self.data_raw:
+            raise TrackerError("Missing trackers data")
+        
+        self.data['drivers'] = {}
+        self.data['trackers'] = {}
+
+        for key, value in self.data_raw['drivers'].items():
+            driver = Driver(name=value['name'], 
+                            tz=value['tz'],
+                            available=value['available'],
+                            maybe=value['maybe'],
+                            unavailable=value['unavailable'])
+            self.data['drivers'][value['name']] = driver
+        for key, value in self.data_raw['trackers'].items():
+            tracker = TrackerSlot(time_slot=value['time_slot'],
+                                  planned_driver=value['planned_driver'],
+                                  planned_stint=value['planned_stint'],
+                                  actual_driver=value['actual_driver'],
+                                  actual_stint=value['actual_stint'],
+                                  est_rain=value['est_rain'],
+                                  act_weather=value['act_weather'],
+                                  act_track_condition=value['act_track_condition'],
+                                  notes=value['notes'])
+            self.data['trackers'][value['time_slot']] = tracker
+
+    def parse_data(self):
+        self.data_raw = {}
+        for key in DATA_ITEMS:
+            if key not in self.data:
+                raise TrackerError(f"Missing data item: {key}")
+            else:
+                self.data_raw[key] = self.data[key] 
+
+        self.data_raw['drivers'] = {}
+        self.data_raw['trackers'] = {}
+
+        for key, value in self.data['drivers'].items():
+            self.data_raw['drivers'][key] = {
+                'name': value.name,
+                'tz': value.time_zone,
+                'available': value.available,
+                'maybe': value.maybe,
+                'unavailable': value.unavailable
+            }
+        for key, value in self.data['trackers'].items():
+            self.data_raw['trackers'][key] = {
+                'time_slot': value.time_slot,
+                'planned_driver': value.planned_driver,
+                'planned_stint': value.planned_stint,
+                'actual_driver': value.actual_driver,
+                'actual_stint': value.actual_stint,
+                'est_rain': value.est_rain,
+                'act_weather': value.act_weather,
+                'act_track_condition': value.act_track_condition,
+                'notes': value.notes
+            }
+        
+    def update_value(self, item='', index='', value=None):
+        if item not in self.data:
+            raise TrackerError(f"Missing data item: {item}")
+        if item == 'drivers':
+            if index not in self.data[item]:
+                raise TrackerError(f"Missing driver: {index}")
+            self.data[item][index].__dict__[value] = value
+        elif item == 'trackers':
+            if index not in self.data[item]:
+                raise TrackerError(f"Missing tracker: {index}")
+            self.data[item][index].__dict__[value] = value
+        else:
+            if item not in DATA_ITEMS:
+                raise TrackerError(f"Requesting to update: {item} does not exist")
+            else:
+                self.data[item] = value
+                self.update_local_data()
+
+        print(f"Updated {item} - {index} - {value}")
+
+    
+    def reset_drivers_time_slots(self):
+        for key in self.data['drivers']:
+            self.data['drivers'][key].available = []
+            self.data['drivers'][key].maybe = []
+            self.data['drivers'][key].unavailable = [i for i in range(1, ceil(text2time(self.data['event_duration']) / text2time(self.data['average_stint_time'])))]
+        
+        self.update_local_data()
+        print("Drivers time slots reset")
+
+    def reset_drivers(self):
+        self.data['drivers'] = {}
+
+        self.update_local_data()
+        print("Drivers reset")
+
+    def generate_message(self, func, *args, **kwargs):
+        if func == 'update':
+            """
+            -update -event
+            -update -driver --name 
+            """
+            message = f"-{func} -{args[0]} --{args[1]} {args[2]}"
+        elif func == 'get':
+            """
+            -get -event
+            -get -driver --name
+            """
+            message = f"-{func} -{args[0]} --{args[1]}"
+        elif func == 'reset':
+            """
+            -reset -event
+            -reset driver or -reset tracker
+            -reset driver name or -reset tracker time_slot
+            """
+            message = f"-{func} -{args[0]} {args[1]}"
+        elif func == 'add':
+            """
+            -add driver name or -add tracker time_slot
+            update rest of the data
+            """
+            message = f"-{func} {args[0]} {args[1]}"
+
+
+class TrackerServer(TrackerClient):
+    def __init__(self, host="127.0.0.1", port=65432, data_dir=DATA_DIR):
+        super().__init__(host, port, data_dir)
+        self.status = "stopped"
+
+    def start(self):
+        print(f"Starting server at {self.host}:{self.port}...")
+        try:
+            self.socket.bind((self.host, self.port))
+            self.socket.listen()
+        except socket.error as e:
+            print(f"Error starting server: {e}")
+            return
+        else:
+            print(f"Server started at {self.host}:{self.port}")
+            print("Waiting for connection...")
+
+            self.start_listener()
+            self.status = "started"
+
+    def start_listener(self):
+        self.conn, self.addr = self.socket.accept()
+        print(f"Connection accepted from {self.addr}")
+
+        self.listener = Thread(target=self.listening)
+        self.listener.start()
+
+    def stop(self):
+        if self.listener:
+            # self.listener.join()
+            self.listener = None
+        self.conn.close()
+        self.socket.close()
+        self.status = "stopped"
+
+    def listening(self):
+        while self.listener is not None:
+            try:
+                data = self.conn.recv(self.buffer_size)
+                if not data:
+                    break
+                print(f"Received data: {data.decode()}")
+                # TODO: Process the received data
+            except socket.error as e:
+                print(f"Error receiving data: {e}")
+                break
+            sleep(self.listener_interval)
+    
+    

@@ -261,15 +261,15 @@ class DatePicker:
         self.widgets['main_frame'] = frame
         
         self.entry = Entry(frame, width=20, border=0, borderwidth=0, relief='flat', justify='center')
-        if self.master == self.elements['entry_event_time_est']:
-            self.entry.config(textvariable=self.variables['event_time_est'])
-            self.widgets['entry_var'] = self.variables['event_time_est']
-        elif self.master == self.elements['entry_event_time_cst']:
-            self.entry.config(textvariable=self.variables['event_time_cst'])
-            self.widgets['entry_var'] = self.variables['event_time_cst']
-        elif self.master == self.elements['entry_event_time_mst']:
-            self.entry.config(textvariable=self.variables['event_time_mst'])
-            self.widgets['entry_var'] = self.variables['event_time_mst']
+        if self.master == self.elements['entry_event_date']:
+            self.entry.config(textvariable=self.variables['event_date'])
+            self.widgets['entry_var'] = self.variables['event_date']
+        # elif self.master == self.elements['entry_event_time_cst']:
+        #     self.entry.config(textvariable=self.variables['event_time_cst'])
+        #     self.widgets['entry_var'] = self.variables['event_time_cst']
+        # elif self.master == self.elements['entry_event_time_mst']:
+        #     self.entry.config(textvariable=self.variables['event_time_mst'])
+        #     self.widgets['entry_var'] = self.variables['event_time_mst']
         else: 
             raise TrackerError("Invalid master")
         
@@ -291,51 +291,51 @@ class DatePicker:
         self.widgets['calendar'] = cal
         cal.see(to_datetime(self.variables['event_time_est'].get()))
 
-        time_frame = Frame(top)
-        time_frame.grid(column=0, row=1, padx=0, pady=0)
-        self.widgets['time_frame'] = time_frame
+        # time_frame = Frame(top)
+        # time_frame.grid(column=0, row=1, padx=0, pady=0)
+        # self.widgets['time_frame'] = time_frame
 
-        if self.master == self.elements['entry_event_time_est']:
-            hour = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[0])
-            minute = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[1])
-            second = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[2])
-        elif self.master == self.elements['entry_event_time_cst']:
-            hour = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[0])
-            minute = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[1])
-            second = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[2])
-        elif self.master == self.elements['entry_event_time_mst']:
-            hour = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[0])
-            minute = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[1])
-            second = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[2])
-        else: 
-            raise TrackerError("Invalid master")
-        self.widgets['hour'] = hour
-        self.widgets['minute'] = minute
-        self.widgets['second'] = second
+        # if self.master == self.elements['entry_event_time_est']:
+        #     hour = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[0])
+        #     minute = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[1])
+        #     second = StringVar(value=self.variables['event_time_est'].get().split(' ')[1].split(':')[2])
+        # elif self.master == self.elements['entry_event_time_cst']:
+        #     hour = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[0])
+        #     minute = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[1])
+        #     second = StringVar(value=self.variables['event_time_cst'].get().split(' ')[1].split(':')[2])
+        # elif self.master == self.elements['entry_event_time_mst']:
+        #     hour = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[0])
+        #     minute = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[1])
+        #     second = StringVar(value=self.variables['event_time_mst'].get().split(' ')[1].split(':')[2])
+        # else: 
+        #     raise TrackerError("Invalid master")
+        # self.widgets['hour'] = hour
+        # self.widgets['minute'] = minute
+        # self.widgets['second'] = second
 
-        hour_entry = Entry(time_frame, textvariable=hour)
-        hour_entry.grid(row=0, column=0, padx=0, pady=0)
-        self.widgets['hour_entry'] = hour_entry
-        temp_label = Label(time_frame, text=':')
-        temp_label.grid(row=0, column=1, padx=0, pady=0)
+        # hour_entry = Entry(time_frame, textvariable=hour)
+        # hour_entry.grid(row=0, column=0, padx=0, pady=0)
+        # self.widgets['hour_entry'] = hour_entry
+        # temp_label = Label(time_frame, text=':')
+        # temp_label.grid(row=0, column=1, padx=0, pady=0)
 
-        minute_entry = Entry(time_frame, textvariable=minute)
-        minute_entry.grid(row=0, column=2, padx=0, pady=0)
-        self.widgets['minute_entry'] = minute_entry
-        temp_label = Label(time_frame, text=':')
-        temp_label.grid(row=0, column=3, padx=0, pady=0)
+        # minute_entry = Entry(time_frame, textvariable=minute)
+        # minute_entry.grid(row=0, column=2, padx=0, pady=0)
+        # self.widgets['minute_entry'] = minute_entry
+        # temp_label = Label(time_frame, text=':')
+        # temp_label.grid(row=0, column=3, padx=0, pady=0)
 
-        second_entry = Entry(time_frame, textvariable=second)
-        second_entry.grid(row=0, column=4, padx=0, pady=0)
-        self.widgets['second_entry'] = second_entry
+        # second_entry = Entry(time_frame, textvariable=second)
+        # second_entry.grid(row=0, column=4, padx=0, pady=0)
+        # self.widgets['second_entry'] = second_entry
 
         def on_date_select():
             selected_date = cal.selection_get()
-            hour_int = int(hour.get())
-            period = "AM" if hour_int < 12 else "PM"
-            self.widgets['entry_var'].set(f"{selected_date.strftime('%m-%d-%Y')} "
-                                          f"{hour_int:02d}:{int(minute.get()):02d}:{int(second.get()):02d} "
-                                          f"{period}")
+            # hour_int = int(hour.get())
+            # period = "AM" if hour_int < 12 else "PM"
+            self.widgets['entry_var'].set(f"{selected_date.strftime('%m-%d-%Y')} ")
+                                        #   f"{hour_int:02d}:{int(minute.get()):02d}:{int(second.get()):02d} "
+                                        #   f"{period}")
             top.destroy()
 
         select_button = Button(top, text="Select", command=on_date_select)

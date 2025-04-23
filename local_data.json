@@ -1,0 +1,152 @@
+{
+    "event": "Spa 24h 2024",
+    "event date": "2024-07-20",
+    "event time": "03:00",
+    "event timezone": "US/Eastern",
+    "car": "Ferrari 296 GT3",
+    "team": "Thermal Purple",
+    "event duration": "24h",
+    "track": "Spa-Francorchamps",
+    "current position": 20,
+    "total drivers": 50,
+    "gap to race start": "00:48:00",
+    "practice duration": "00:30:00",
+    "qualify duration": "00:15:00",
+    "time to green": "00:01:00",
+    "time to start": "00:02:00",
+    "sim. race start": "17:00:00",
+    "theoretical stint time": "01:00:00",
+    "average stint time": "01:00:00",
+    "drivers": [
+        {
+            "name": "Driver 1",
+            "timezone": "US/Eastern",
+            "available for stints": [1, 2, 3],
+            "maybe for stints": [4, 5],
+            "not available for stints": [6, 7, 8]
+        },
+        {
+            "name": "Driver 2",
+            "timezone": "US/Pacific",
+            "available for stints": [6, 7, 8],
+            "maybe for stints": [9, 10],
+            "not available for stints": [1, 2, 3]
+        },
+        {
+            "name": "Driver 3",
+            "timezone": "US/Mountain",
+            "available for stints": [9, 10, 11],
+            "maybe for stints": [12, 13],
+            "not available for stints": [4, 5, 6]
+        },
+        {
+            "name": "Driver 4",
+            "timezone": "US/Central",
+            "available for stints": [1, 2, 3],
+            "maybe for stints": [4, 5],
+            "not available for stints": [6, 7, 8]
+        }
+
+    ],
+    "tracker": [
+        {
+            "time slot": "Practice",
+            "planned driver": "Driver 1",
+            "planned stint": "N/A",
+            "actual driver": "Driver 1",
+            "actual stint": "N/A",
+            "est. chance of rain": 0,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "Qualify",
+            "planned driver": "Driver 2",
+            "planned stint": "N/A",
+            "actual driver": "Driver 2",
+            "actual stint": "N/A",
+            "est. chance of rain": 0,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "00:00:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 0,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "00:15:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 2,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "00:30:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 4,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "00:45:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 8,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "01:00:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 16,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "01:15:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 32,
+            "actual weather": "Clear",
+            "actual track condition": "Full Dry",
+            "notes": ""
+        },
+        {
+            "time slot": "01:30:00",
+            "planned driver": "Driver 1",
+            "planned stint": 1,
+            "actual driver": "Driver 1",
+            "actual stint": 1,
+            "est. chance of rain": 64,
+            "actual weather": "",
+            "actual track condition": "",
+            "notes": ""
+        }
+    ]
+}
