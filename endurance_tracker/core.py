@@ -70,8 +70,6 @@ class TimeScheduler:
             stint_time = self.get_delta('theoretical_stint_time').total_seconds()
 
             stints = ceil(total_time / stint_time)
-            if self.target == 'actual':
-                stints += ceil(0)  # reserved for predicted stints
             remains = int(total_time % stint_time) / stint_time
             weight = ceil(1 / remains) if remains else 1
 

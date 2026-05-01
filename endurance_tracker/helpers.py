@@ -218,16 +218,6 @@ class TrackerClient:
                 self.db.remove_driver(name['name'])
         print("Drivers reset")
 
-    def generate_message(self, func, *args, **kwargs):
-        if func == 'update':
-            message = f"-{func} -{args[0]} --{args[1]} {args[2]}"
-        elif func == 'get':
-            message = f"-{func} -{args[0]} --{args[1]}"
-        elif func == 'reset':
-            message = f"-{func} -{args[0]} {args[1]}"
-        elif func == 'add':
-            message = f"-{func} {args[0]} {args[1]}"
-        return message
 
 
 # ──────────────────────────────────────────── TrackerServer ───────────────────

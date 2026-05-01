@@ -365,7 +365,7 @@ def load_menu():
     elements['main_menu'].add_cascade(label="Data", menu=menu_data)
     elements['menu_data'] = menu_data
     elements['menu_data'].add_command(label="Init Tracker",
-                                      command=init_theoritical_stints)
+                                      command=init_theoretical_stints)
 
 
 def load_status():
@@ -1451,7 +1451,7 @@ def copy_time(event=None):
     root.update()
 
 
-def init_theoritical_stints(event=None):
+def init_theoretical_stints(event=None):
     global tracker
 
     tracker.iloc[:, 1:] = ''
@@ -1461,7 +1461,7 @@ def init_theoritical_stints(event=None):
     total_time_mins = ceil(total_time.total_seconds() / 60)
     theoretical_stint_time = get_delta('theoretical_stint_time')
     theoretical_stint_time_mins = ceil(theoretical_stint_time.total_seconds() / 60)
-    stints = ceil(total_time / theoretical_stint_time) if theoretical_stint_time.total_seconds() > 0 else 0
+    stints = ceil(total_time.total_seconds() / theoretical_stint_time.total_seconds()) if theoretical_stint_time.total_seconds() > 0 else 0
 
     index = 2
     for i in range(total_time_mins):
