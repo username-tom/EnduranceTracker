@@ -3,8 +3,6 @@
 Contains all Tkinter UI logic, globals, and the main() entry point.
 """
 
-import sys
-import os
 from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
 from customtkinter import CTkOptionMenu
@@ -594,8 +592,6 @@ def load_tab_general():
                                variables['event_date'].get()))
 
     # Event time
-    Label(tab_general, text='Event Time', bg=bg,
-          font=("Helvetica", 10, 'bold')).grid(row=2, column=0, sticky="nsew")
     _make_time_row(tab_general, 2, 'Event Time', 'event_time', bg)
 
     # Event timezone

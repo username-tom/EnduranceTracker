@@ -1,7 +1,7 @@
 """Core UI components: TimeScheduler and DatePicker."""
 
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, TclError
 from tkcalendar import Calendar
 from pandas import to_datetime
 from math import ceil
