@@ -1,2 +1,2 @@
-from .context import sample
+from .context import endurance_tracker
 

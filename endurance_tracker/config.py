@@ -1,24 +1,34 @@
+"""Configuration constants and config-file helpers for EnduranceTracker."""
+
 import configparser as cp
 import os
-OWD = os.getcwd()
-os.chdir(OWD)
+
+# Locate config.ini relative to the project root (two levels up from this file)
+_PACKAGE_DIR = os.path.dirname(__file__)
+_PROJECT_ROOT = os.path.abspath(os.path.join(_PACKAGE_DIR, '..'))
+_CONFIG_PATH = os.path.join(_PROJECT_ROOT, 'config.ini')
 
 config = cp.ConfigParser()
-config.read('config.ini')
+config.read(_CONFIG_PATH)
+
 
 def get_config(section, key):
     return config.get(section, key)
 
+
 def set_config(section, key, value):
-    config.set(section, key, value)
-    with open('config.ini', 'w') as configfile:
+    if not config.has_section(section):
+        config.add_section(section)
+    config.set(section, key, str(value))
+    with open(_CONFIG_PATH, 'w') as configfile:
         config.write(configfile)
+
 
 GEOMETRY = get_config('general', 'geometry')
 STATUS_TIMES = get_config('settings', 'times')
-DARK_MODE = True if get_config('general', 'dark_mode').lower() == 'true' else False
+DARK_MODE = get_config('general', 'dark_mode').lower() == 'true'
 DATA_DIR = get_config('general', 'data_dir')
-IS_SERVER = True if get_config('general', 'server').lower() == 'true' else False
+IS_SERVER = get_config('general', 'server').lower() == 'true'
 HOST = get_config('com', 'host')
 PORT = int(get_config('com', 'port'))
 
@@ -40,11 +50,12 @@ ENTRY_BG_DARK = '#1A1A1A'
 ENTRY_FG_DARK = 'white'
 LABEL_FG = 'black'
 LABEL_FG_DARK = 'white'
-BUTTON_BG = '#f0f0f0'  # A commonly used light grey color for button backgrounds
+BUTTON_BG = '#f0f0f0'
 BUTTON_FG = 'black'
 BUTTON_BG_DARK = '#0A0A0A'
 BUTTON_FG_DARK = 'white'
 HOUR_STINT_FONT = 'TkFixedFont'
+
 WEATHER_CONDITIONS = [
     'Unknown',
     'Clear',
@@ -56,6 +67,7 @@ WEATHER_CONDITIONS = [
     'Heavy Rain',
     'Moderate Rain',
 ]
+
 TRACK_CONDITIONS = [
     'Unknown',
     'Full Dry',
@@ -64,6 +76,7 @@ TRACK_CONDITIONS = [
     'Wet',
 ]
 
+# Maps human-readable field names to snake_case DB keys
 DATA_ITEMS = {
     "event": "event",
     "event date": "event_date",
@@ -81,6 +94,18 @@ DATA_ITEMS = {
     "time to green": "time_to_green",
     "time to start": "time_to_start",
     "sim. race start": "sim_time_start",
-    "theoretical stint time": "thereotical_stint_time",
+    "theoretical stint time": "theoretical_stint_time",
     "average stint time": "average_stint_time",
 }
+
+# Canonical column names for the tracker DataFrame
+TRACKER_COLUMNS = [
+    'Overall Time Slots',
+    'Driver',
+    'Theoretical Stints #',
+    'Actual Stints #',
+    'Actual Driver',
+    'Est. Chance of Rain (%)',
+    'Act. Weather at Time',
+    'Notes',
+]
