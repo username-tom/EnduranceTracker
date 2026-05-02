@@ -52,15 +52,15 @@ else:
 
 # ─────────────────────────────────────────── module-level globals ─────────────
 
-root: Tk = None
-settings: dict = {}
-variables: dict = {}
-elements: dict = {}
-current_event: str = 'Template'
-tracker: DataFrame = None
-server: TrackerServer = None
-client: TrackerClient = None
-DARK_MODE: bool = _INITIAL_DARK_MODE
+    root: Tk = None
+    settings: dict = {}
+    variables: dict = {}
+    elements: dict = {}
+    current_event: str = 'Template'
+    tracker: DataFrame = None
+    server: TrackerServer = None
+    client: TrackerClient = None
+    DARK_MODE: bool = _INITIAL_DARK_MODE
 
 
 # ─────────────────────────────────────── small helpers ────────────────────────
