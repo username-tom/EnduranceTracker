@@ -37,6 +37,7 @@ PORT = int(get_config('com', 'port'))
 MONGODB_URI = get_config('internet', 'mongodb_uri')
 DATABASE_NAME = get_config('internet', 'database_name')
 PASSCODE = get_config('internet', 'passcode')
+SHOW_PASSWORD = get_config('internet', 'show_password').lower() == 'true'
 SERVER_HOST = get_config('internet', 'server_host')
 SERVER_PORT = int(get_config('internet', 'server_port'))
 

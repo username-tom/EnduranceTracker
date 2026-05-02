@@ -10,7 +10,7 @@ import json
 
 from .config import (
     GEOMETRY, DATA_DIR, USE_INTERNET, MONGODB_URI, DATABASE_NAME, 
-    PASSCODE, SERVER_HOST, SERVER_PORT, IS_SERVER
+    PASSCODE, SHOW_PASSWORD, SERVER_HOST, SERVER_PORT, IS_SERVER
 )
 from .db import Database, MongoDatabase
 from .helpers import InternetTrackerClient, InternetTrackerServer
@@ -54,7 +54,8 @@ def home():
                          use_internet=USE_INTERNET,
                          is_server=IS_SERVER,
                          server_host=SERVER_HOST,
-                         server_port=SERVER_PORT)
+                         server_port=SERVER_PORT,
+                         show_password=SHOW_PASSWORD)
 
 @app.route('/general')
 def general():

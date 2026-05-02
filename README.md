@@ -79,6 +79,70 @@ make init
 
 ---
 
+## Configuration
+
+The application uses a `config.ini` file to store settings and connection parameters. This file is automatically created with default values on first run, but can be customized as needed.
+
+### Configuration Sections
+
+#### `[general]` - Application Settings
+- `geometry`: Window size and position (format: `widthxheight+x+y`)
+- `dark_mode`: Enable dark theme (`True`/`False`)
+- `data_dir`: Local database file path (default: `./endurance_tracker.db`)
+- `server`: Enable server mode for network collaboration (`1`/`0`)
+- `use_internet`: Enable internet mode with MongoDB (`True`/`False`)
+
+#### `[settings]` - User Preferences
+- `times`: Comma-separated list of timezones for driver availability
+  - Example: `US/Eastern,US/Central,US/Mountain,US/Pacific`
+  - Supports all standard timezone identifiers
+
+#### `[com]` - Network Communication
+- `host`: Local network host address (default: `127.0.0.1`)
+- `port`: Local network port (default: `65432`)
+
+#### `[internet]` - Internet Collaboration
+- `mongodb_uri`: MongoDB connection string
+  - Local: `mongodb://localhost:27017/`
+  - Atlas: `mongodb+srv://username:password@cluster.mongodb.net/`
+- `database_name`: MongoDB database name (default: `endurance_tracker`)
+- `passcode`: SHA256-hashed authentication passcode for security
+- `server_host`: Internet server host (default: `127.0.0.1`)
+- `server_port`: Internet server port (default: `8080`)
+
+### Example Configurations
+
+**Local Only Mode** (default):
+```ini
+[general]
+use_internet = False
+server = 0
+```
+
+**Network Collaboration Mode**:
+```ini
+[general]
+server = 1
+use_internet = False
+
+[com]
+host = 192.168.1.100
+port = 65432
+```
+
+**Internet Mode with MongoDB Atlas**:
+```ini
+[general]
+use_internet = True
+
+[internet]
+mongodb_uri = mongodb+srv://username:password@cluster.mongodb.net/
+database_name = my_race_team
+passcode = your_secure_passcode_here
+```
+
+---
+
 ## Usage
 
 ### Desktop Mode (Traditional Tkinter GUI)

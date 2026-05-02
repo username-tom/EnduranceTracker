@@ -20,7 +20,7 @@ from pandas import DataFrame, concat
 from .config import (
     GEOMETRY, STATUS_TIMES, DARK_MODE as _INITIAL_DARK_MODE,
     DATA_DIR, IS_SERVER, HOST, PORT, USE_INTERNET,
-    MONGODB_URI, DATABASE_NAME, PASSCODE, SERVER_HOST, SERVER_PORT,
+    MONGODB_URI, DATABASE_NAME, PASSCODE, SHOW_PASSWORD, SERVER_HOST, SERVER_PORT,
     MAX_DRIVER, WEATHER_LENGTH,
     STATUS_BG, CONTENT_BG, STATUS_BG_DARK, CONTENT_BG_DARK,
     TAB_BG, TAB_BG_ACTIVE, TAB_BG_DARK, TAB_BG_DARK_ACTIVE,
@@ -612,8 +612,25 @@ def load_tab_home():
           font=("Helvetica", 10, 'bold')).grid(row=4, column=0, sticky="nsew")
     
     variables['passcode'] = StringVar(value=PASSCODE)
-    Entry(tab_home, textvariable=variables['passcode'], 
-          justify='center', show='*').grid(row=4, column=1, sticky="nsew", pady=2)
+    variables['show_passcode'] = BooleanVar(value=SHOW_PASSWORD)
+    
+    passcode_frame = Frame(tab_home, bg=bg)
+    passcode_frame.grid(row=4, column=1, sticky="nsew", pady=2)
+    passcode_frame.grid_columnconfigure(0, weight=1)
+    
+    passcode_entry = Entry(passcode_frame, textvariable=variables['passcode'], 
+                           justify='center', show='*' if not SHOW_PASSWORD else '')
+    passcode_entry.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+    elements['passcode_entry'] = passcode_entry
+    
+    def toggle_passcode_visibility():
+        show = variables['show_passcode'].get()
+        passcode_entry.config(show='' if show else '*')
+        toggle_btn.config(text='👁' if not show else '🙈')
+    
+    toggle_btn = Button(passcode_frame, text='👁' if not SHOW_PASSWORD else '🙈',
+                        command=toggle_passcode_visibility, width=3)
+    toggle_btn.grid(row=0, column=1, sticky="nsew")
 
     # Legacy Network Mode Section (for local networks)
     Label(tab_home, text='', bg=bg).grid(row=5, column=0, columnspan=2)  # Spacer

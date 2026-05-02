@@ -68,8 +68,14 @@
 
                     <div class="mb-3">
                         <label for="passcode" class="form-label">Passcode</label>
-                        <input type="password" class="form-control" id="passcode" 
-                               placeholder="Enter shared passcode">
+                        <div class="input-group">
+                            <input type="{% if show_password %}text{% else %}password{% endif %}" class="form-control" id="passcode" 
+                                   placeholder="Enter shared passcode">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePasscode" 
+                                    onclick="togglePasswordVisibility('passcode', 'togglePasscode')">
+                                <i class="bi {% if show_password %}bi-eye-slash{% else %}bi-eye{% endif %}" id="togglePasscode-icon"></i>
+                            </button>
+                        </div>
                         <div class="form-text">
                             All team members must use the same passcode
                         </div>
@@ -293,6 +299,20 @@ function logMessage(message, type = 'info') {
     
     log.appendChild(messageDiv);
     log.scrollTop = log.scrollHeight;
+}
+
+function togglePasswordVisibility(inputId, buttonId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleButton = document.getElementById(buttonId);
+    const toggleIcon = document.getElementById(buttonId + '-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.className = 'bi bi-eye';
+    }
 }
 </script>
 {% endblock %}
