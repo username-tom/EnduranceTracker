@@ -1,13 +1,14 @@
 # Internet Communication Setup Guide
 
-The EnduranceTracker now supports internet communication allowing multiple machines to share data in real-time using a server-client architecture with passcode authentication.
+EnduranceTracker supports internet communication allowing multiple machines to share data in real-time using a server-client architecture with passcode authentication.
 
 ## Overview
 
 - **Server**: Hosts the data and runs the HTTP API server
 - **Clients**: Connect to the server to access and edit shared data
-- **Authentication**: All communication is protected by a shared passcode
+- **Authentication**: All communication is protected by a SHA256-hashed shared passcode
 - **Database**: Uses MongoDB for internet mode, SQLite for local mode
+- **Interfaces**: Supported in both Desktop (Tkinter) and Web (Flask) modes
 
 ## Setup Instructions
 
@@ -25,15 +26,32 @@ The EnduranceTracker now supports internet communication allowing multiple machi
 
 ### 2. Application Configuration
 
-1. **Enable Internet Mode**: Check "Enable Internet Mode" in the General tab
-2. **Choose Mode**: 
-   - Select "Server" for the machine that will host data
-   - Select "Client" for machines that will connect to the server
-3. **Server Address**: 
-   - Server: Use `0.0.0.0` (listens on all interfaces) or specific IP
+Edit `config.ini` (created automatically on first run):
+
+```ini
+[general]
+use_internet = True
+server = 1  ; set to 0 for client mode
+
+[internet]
+mongodb_uri = mongodb://localhost:27017/
+database_name = endurance_tracker
+passcode = your_secure_passcode_here
+server_host = 0.0.0.0
+server_port = 8080
+```
+
+Or configure via the Home tab in the application:
+
+1. **Enable Internet Mode**: Set `use_internet = True` in `config.ini` or toggle in the Home tab
+2. **Choose Mode**:
+   - `server = 1` for the machine that will host data
+   - `server = 0` for machines that will connect to the server
+3. **Server Address**:
+   - Server: Use `0.0.0.0` (listens on all interfaces) or a specific IP
    - Clients: Enter the server's IP address or hostname
-4. **Port**: Default is 8080 (make sure it's open in firewall)
-5. **Passcode**: Set a secure shared passcode (same on server and all clients)
+4. **Port**: Default is `8080` (make sure it's open in your firewall)
+5. **Passcode**: Set a secure shared passcode (must be identical on server and all clients)
 
 ### 3. Network Configuration
 
@@ -75,8 +93,8 @@ The settings are saved in `config.ini`:
 
 ```ini
 [general]
-use_internet = true
-server = true  # or false for client
+use_internet = True
+server = 1  ; 1 = server mode, 0 = client mode
 
 [internet]
 mongodb_uri = mongodb://localhost:27017/

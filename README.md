@@ -32,6 +32,7 @@ A comprehensive endurance racing management application that supports both deskt
   - Secure SHA256-hashed passcode authentication
   - Real-time data synchronization
   - Support for cloud or local MongoDB instances
+  - See [INTERNET_SETUP.md](INTERNET_SETUP.md) for full setup instructions
 
 ---
 
@@ -211,7 +212,9 @@ use_internet = False
 
 ### Internet Mode Setup
 
-#### Server Setup
+For detailed internet mode setup instructions, see **[INTERNET_SETUP.md](INTERNET_SETUP.md)**.
+
+#### Quick Reference — Server Setup
 1. Install and start MongoDB
 2. Configure `config.ini`:
    ```ini
@@ -225,7 +228,7 @@ use_internet = False
    ```
 3. Run application and start as server in Home tab
 
-#### Client Setup  
+#### Quick Reference — Client Setup  
 1. Configure `config.ini` with server details:
    ```ini
    [internet]
@@ -277,6 +280,7 @@ EnduranceTracker/
 ├── setup.py                     # Package setup
 ├── Makefile                     # Build automation
 ├── EnduranceTracker.spec       # PyInstaller spec
+├── INTERNET_SETUP.md            # Internet mode setup guide
 └── README.md                    # This file
 ```
 
@@ -420,7 +424,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: Check this README and inline code comments
 - **Configuration**: Review `config.ini` settings for your use case
 - **Issues**: Report bugs and feature requests via GitHub issues
-- **Internet Setup**: Ensure MongoDB and network requirements are met
+- **Internet Setup**: See [INTERNET_SETUP.md](INTERNET_SETUP.md) for MongoDB and network requirements
 
 **Choose Your Interface:**
 - **Desktop Mode**: Traditional GUI for local use and familiar interface
