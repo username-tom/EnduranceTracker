@@ -16,7 +16,8 @@ from pandas import DataFrame, concat
 
 from .config import (
     GEOMETRY, STATUS_TIMES, DARK_MODE as _INITIAL_DARK_MODE,
-    DATA_DIR, IS_SERVER, HOST, PORT,
+    DATA_DIR, IS_SERVER, HOST, PORT, USE_INTERNET,
+    MONGODB_URI, DATABASE_NAME, PASSCODE, SERVER_HOST, SERVER_PORT,
     MAX_DRIVER, WEATHER_LENGTH,
     STATUS_BG, CONTENT_BG, STATUS_BG_DARK, CONTENT_BG_DARK,
     TAB_BG, TAB_BG_ACTIVE, TAB_BG_DARK, TAB_BG_DARK_ACTIVE,
@@ -27,8 +28,8 @@ from .config import (
     DATA_ITEMS, TRACKER_COLUMNS,
     get_config, set_config,
 )
-from .db import Database
-from .helpers import TrackerClient, TrackerServer, tz_diff, format_timedelta
+from .db import Database, MongoDatabase
+from .helpers import TrackerClient, TrackerServer, InternetTrackerClient, InternetTrackerServer, tz_diff, format_timedelta
 from .core import TimeScheduler, DatePicker
 
 # ─────────────────────────────────────────── module-level globals ─────────────
@@ -342,9 +343,24 @@ def loading():
     tracker = DataFrame(columns=TRACKER_COLUMNS)
 
     # ── server / client ───────────────────────────────────────────────────────
-    db = Database(DATA_DIR)
-    server = TrackerServer(HOST, PORT, db=db)
-    client = TrackerClient(HOST, PORT, db=db)
+    if USE_INTERNET:
+        # Internet mode: use MongoDB and HTTP communication
+        try:
+            db = MongoDatabase(MONGODB_URI, DATABASE_NAME)
+            server = InternetTrackerServer(SERVER_HOST, SERVER_PORT, db=db, passcode=PASSCODE)
+            client = InternetTrackerClient(SERVER_HOST, SERVER_PORT, db=db, passcode=PASSCODE)
+            print(f"Internet mode enabled - MongoDB: {MONGODB_URI}/{DATABASE_NAME}")
+        except Exception as e:
+            print(f"Failed to initialize internet mode: {e}")
+            print("Falling back to local mode...")
+            db = Database(DATA_DIR)
+            server = TrackerServer(HOST, PORT, db=db)
+            client = TrackerClient(HOST, PORT, db=db)
+    else:
+        # Local mode: use SQLite and socket communication
+        db = Database(DATA_DIR)
+        server = TrackerServer(HOST, PORT, db=db)
+        client = TrackerClient(HOST, PORT, db=db)
 
     load_from_db()
     start_status()
@@ -560,7 +576,7 @@ def load_tab_general():
     tab_general = elements['tab_general']
     tab_general.grid_columnconfigure(1, weight=1)
     tab_general.grid_columnconfigure(2, weight=2)
-    for i in range(16):
+    for i in range(25):  # Increased range to accommodate new internet settings
         tab_general.grid_rowconfigure(i, weight=1)
     bg = CONTENT_BG
 
@@ -602,13 +618,10 @@ def load_tab_general():
     tz_frame.grid(row=3, column=1, sticky="nsew", pady=2)
     tz_frame.grid_columnconfigure(0, weight=1)
     tz_frame.grid_rowconfigure(0, weight=1)
-    tz_option = CTkOptionMenu(tz_frame, variables['event_timezone'],
-                              *pytz.all_timezones)
+    tz_option = CTkOptionMenu(tz_frame, variable=variables['event_timezone'],
+                              values=list(pytz.all_timezones),
+                              command=lambda value: update_value('event_timezone', '', value))
     elements['entry_event_timezone'] = tz_option
-    tz_option.entry.bind(
-        '<Return>',
-        lambda e: update_value('event_timezone', '',
-                               variables['event_timezone'].get()))
 
     # Car
     Label(tab_general, text='Car', bg=bg,
@@ -657,6 +670,68 @@ def load_tab_general():
     _make_time_row(tab_general, 14, 'Theoretical Stint Time',
                    'theoretical_stint_time', bg)
     _make_time_row(tab_general, 15, 'Average Stint Time', 'average_stint_time', bg)
+
+    # Internet mode configuration
+    Label(tab_general, text='Internet Mode', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=16, column=0, sticky="nsew")
+    
+    # Internet mode toggle
+    internet_frame = Frame(tab_general, bg=bg)
+    internet_frame.grid(row=16, column=1, sticky="nsew", pady=2)
+    internet_frame.grid_columnconfigure((0, 1, 2), weight=1)
+    
+    variables['use_internet'] = IntVar(value=1 if USE_INTERNET else 0)
+    Checkbutton(internet_frame, text="Enable Internet Mode", 
+                variable=variables['use_internet'], bg=bg,
+                command=toggle_internet_mode).grid(row=0, column=0, sticky="w")
+    
+    # Connection status
+    variables['connection_status'] = StringVar(value='Disconnected')
+    Label(internet_frame, textvariable=variables['connection_status'], 
+          bg=bg, fg='red').grid(row=0, column=1, sticky="w", padx=10)
+    
+    # Connect/Disconnect button
+    Button(internet_frame, text="Connect", 
+           command=toggle_connection).grid(row=0, column=2, sticky="e")
+
+    # Server/Client mode selection (row 17)
+    Label(tab_general, text='Mode', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=17, column=0, sticky="nsew")
+    
+    mode_frame = Frame(tab_general, bg=bg)
+    mode_frame.grid(row=17, column=1, sticky="nsew", pady=2)
+    
+    variables['is_server'] = IntVar(value=1 if IS_SERVER else 0)
+    Radiobutton(mode_frame, text="Server", variable=variables['is_server'], 
+                value=1, bg=bg, command=update_server_mode).pack(side=LEFT)
+    Radiobutton(mode_frame, text="Client", variable=variables['is_server'], 
+                value=0, bg=bg, command=update_server_mode).pack(side=LEFT)
+
+    # Connection settings (row 18)
+    Label(tab_general, text='Server Address', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=18, column=0, sticky="nsew")
+    
+    conn_frame = Frame(tab_general, bg=bg)
+    conn_frame.grid(row=18, column=1, sticky="nsew", pady=2)
+    conn_frame.grid_columnconfigure((0, 2), weight=1)
+    
+    variables['server_host'] = StringVar(value=SERVER_HOST)
+    Entry(conn_frame, textvariable=variables['server_host'], 
+          justify='center').grid(row=0, column=0, sticky="ew", padx=(0, 5))
+    
+    Label(conn_frame, text=':', bg=bg).grid(row=0, column=1)
+    
+    variables['server_port'] = StringVar(value=str(SERVER_PORT))
+    Entry(conn_frame, textvariable=variables['server_port'], 
+          justify='center', width=8).grid(row=0, column=2, sticky="w", padx=(5, 0))
+
+    # Passcode (row 19)
+    Label(tab_general, text='Passcode', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=19, column=0, sticky="nsew")
+    
+    variables['passcode'] = StringVar(value=PASSCODE)
+    Entry(tab_general, textvariable=variables['passcode'], 
+          justify='center', show='*').grid(row=19, column=1, sticky="nsew", pady=2)
 
     # Hidden variable for event_time_est used by status updater
     variables['event_time_est'] = StringVar(value='')
@@ -1103,6 +1178,111 @@ def reset_drivers_time_slots():
         maybe = [i + 1 for i, v in enumerate(slots) if v == '2']
         unavailable = [i + 1 for i, v in enumerate(slots) if v == '0']
         db.update_driver_slots(name, available, maybe, unavailable)
+
+
+def toggle_internet_mode():
+    """Toggle between internet and local mode."""
+    global server, client
+    use_internet = variables['use_internet'].get()
+    
+    # Stop current server/client
+    try:
+        if hasattr(server, 'stop'):
+            server.stop()
+        if hasattr(client, 'disconnect'):
+            client.disconnect()
+    except Exception as e:
+        print(f"Error stopping server/client: {e}")
+    
+    # Update config
+    set_config('general', 'use_internet', str(use_internet == 1).lower())
+    
+    # Update connection status
+    variables['connection_status'].set('Disconnected')
+    
+    messagebox.showinfo("Internet Mode", 
+                       "Internet mode setting saved. Please restart the application for changes to take effect.")
+
+
+def update_server_mode():
+    """Update server/client mode setting."""
+    is_server = variables['is_server'].get()
+    set_config('general', 'server', str(is_server == 1).lower())
+    
+    messagebox.showinfo("Server Mode", 
+                       "Server mode setting saved. Please restart the application for changes to take effect.")
+
+
+def toggle_connection():
+    """Connect or disconnect from internet server."""
+    global server, client
+    
+    if not USE_INTERNET:
+        messagebox.showwarning("Internet Mode", 
+                              "Internet mode is not enabled. Enable it and restart the application.")
+        return
+    
+    current_status = variables['connection_status'].get()
+    
+    if current_status == 'Disconnected':
+        # Try to connect
+        try:
+            # Update connection settings from UI
+            host = variables['server_host'].get()
+            port = int(variables['server_port'].get())
+            passcode = variables['passcode'].get()
+            
+            # Update config
+            set_config('internet', 'server_host', host)
+            set_config('internet', 'server_port', str(port))
+            set_config('internet', 'passcode', passcode)
+            
+            if variables['is_server'].get():
+                # Server mode
+                if hasattr(server, 'start'):
+                    server.passcode = passcode
+                    server.host = host if host != '0.0.0.0' else '0.0.0.0'
+                    server.port = port
+                    server.start()
+                    variables['connection_status'].set('Server Running')
+                    variables['connection_status'].config(fg='green')
+                    messagebox.showinfo("Server", f"Server started on {host}:{port}")
+            else:
+                # Client mode
+                if hasattr(client, 'connect'):
+                    client.host = host
+                    client.port = port
+                    client.passcode = passcode
+                    if client.connect():
+                        variables['connection_status'].set('Connected')
+                        variables['connection_status'].config(fg='green')
+                        messagebox.showinfo("Client", f"Connected to {host}:{port}")
+                    else:
+                        messagebox.showerror("Connection Error", 
+                                           f"Failed to connect to {host}:{port}")
+                        
+        except ValueError:
+            messagebox.showerror("Invalid Port", "Please enter a valid port number.")
+        except Exception as e:
+            messagebox.showerror("Connection Error", f"Failed to connect: {e}")
+    
+    else:
+        # Disconnect
+        try:
+            if variables['is_server'].get():
+                if hasattr(server, 'stop'):
+                    server.stop()
+                    messagebox.showinfo("Server", "Server stopped")
+            else:
+                if hasattr(client, 'disconnect'):
+                    client.disconnect()
+                    messagebox.showinfo("Client", "Disconnected from server")
+            
+            variables['connection_status'].set('Disconnected')
+            variables['connection_status'].config(fg='red')
+            
+        except Exception as e:
+            messagebox.showerror("Disconnect Error", f"Failed to disconnect: {e}")
     init_time_scheduler()
 
 

@@ -29,8 +29,16 @@ STATUS_TIMES = get_config('settings', 'times')
 DARK_MODE = get_config('general', 'dark_mode').lower() == 'true'
 DATA_DIR = get_config('general', 'data_dir')
 IS_SERVER = get_config('general', 'server').lower() == 'true'
+USE_INTERNET = get_config('general', 'use_internet').lower() == 'true'
 HOST = get_config('com', 'host')
 PORT = int(get_config('com', 'port'))
+
+# Internet/MongoDB configuration
+MONGODB_URI = get_config('internet', 'mongodb_uri')
+DATABASE_NAME = get_config('internet', 'database_name')
+PASSCODE = get_config('internet', 'passcode')
+SERVER_HOST = get_config('internet', 'server_host')
+SERVER_PORT = int(get_config('internet', 'server_port'))
 
 MAX_DRIVER = 8
 
