@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}Event Setup - EnduranceTracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-gear"></i> Event Setup & Configuration
+        </h1>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Event Details -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar-event"></i> Event Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="eventForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="eventName" class="form-label">Event Name</label>
+                            <input type="text" class="form-control" id="eventName" 
+                                   value="{{ event_data.get('event', '') }}" 
+                                   placeholder="e.g., Daytona 24 Hours">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="eventDate" class="form-label">Event Date</label>
+                            <input type="date" class="form-control" id="eventDate" 
+                                   value="{{ event_data.get('event_date', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="eventTime" class="form-label">Event Time</label>
+                            <input type="time" class="form-control" id="eventTime" 
+                                   value="{{ event_data.get('event_time', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="eventTimezone" class="form-label">Event Timezone</label>
+                            <select class="form-select" id="eventTimezone">
+                                <option value="">Select timezone...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="car" class="form-label">Car</label>
+                            <input type="text" class="form-control" id="car" 
+                                   value="{{ event_data.get('car', '') }}" 
+                                   placeholder="e.g., BMW M4 GT3">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="team" class="form-label">Team</label>
+                            <input type="text" class="form-control" id="team" 
+                                   value="{{ event_data.get('team', '') }}" 
+                                   placeholder="Team name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="track" class="form-label">Track</label>
+                            <input type="text" class="form-control" id="track" 
+                                   value="{{ event_data.get('track', '') }}" 
+                                   placeholder="e.g., Daytona International Speedway">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="currentPosition" class="form-label">Current Position</label>
+                            <input type="number" class="form-control" id="currentPosition" 
+                                   value="{{ event_data.get('current_position', '') }}" 
+                                   placeholder="1" min="1">
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Race Timing</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="eventDuration" class="form-label">Event Duration (hours)</label>
+                            <input type="number" class="form-control" id="eventDuration" 
+                                   value="{{ event_data.get('event_duration', '') }}" 
+                                   placeholder="24" step="0.5">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="totalDrivers" class="form-label">Total Drivers</label>
+                            <input type="number" class="form-control" id="totalDrivers" 
+                                   value="{{ event_data.get('total_drivers', '') }}" 
+                                   placeholder="4" min="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="theoreticalStintTime" class="form-label">Theoretical Stint Time (min)</label>
+                            <input type="number" class="form-control" id="theoreticalStintTime" 
+                                   value="{{ event_data.get('theoretical_stint_time', '') }}" 
+                                   placeholder="90" min="1">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Save Event Settings
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                            <i class="bi bi-arrow-clockwise"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Management -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i> Driver Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Add Driver Form -->
+                <form id="addDriverForm" class="mb-3">
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" id="driverName" 
+                               placeholder="Driver name" required>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-person-plus"></i> Add
+                        </button>
+                    </div>
+                    <select class="form-select form-select-sm" id="driverTimezone">
+                        <option value="">Optional timezone...</option>
+                    </select>
+                </form>
+
+                <!-- Drivers List -->
+                <div id="driversList">
+                    {% if drivers %}
+                        {% for driver in drivers %}
+                        <div class="driver-item d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                            <div>
+                                <strong>{{ driver.name }}</strong>
+                                {% if driver.timezone %}
+                                    <br><small class="text-muted">{{ driver.timezone }}</small>
+                                {% endif %}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-driver" 
+                                    data-name="{{ driver.name }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-muted text-center py-3">
+                            <i class="bi bi-person-x"></i><br>
+                            No drivers added yet
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100" id="manageAvailabilityBtn">
+                        <i class="bi bi-calendar-check"></i> Manage Availability
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Driver Availability Modal -->
+<div class="modal fade" id="availabilityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-check"></i> Driver Availability
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="availabilityContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveAvailabilityBtn">
+                    <i class="bi bi-check-circle"></i> Save Availability
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Populate timezone selects
+    populateTimezones();
+    
+    // Event form submission
+    document.getElementById('eventForm').addEventListener('submit', handleEventSubmit);
+    
+    // Add driver form submission
+    document.getElementById('addDriverForm').addEventListener('submit', handleAddDriver);
+    
+    // Remove driver buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-driver')) {
+            const driverName = e.target.closest('.remove-driver').dataset.name;
+            removeDriver(driverName);
+        }
+    });
+    
+    // Manage availability button
+    document.getElementById('manageAvailabilityBtn').addEventListener('click', function() {
+        openAvailabilityModal();
+    });
+    
+    // Reset button
+    document.getElementById('resetBtn').addEventListener('click', function() {
+        document.getElementById('eventForm').reset();
+    });
+});
+
+async function populateTimezones() {
+    const timezones = [
+        'US/Eastern', 'US/Central', 'US/Mountain', 'US/Pacific',
+        'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Rome',
+        'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney', 'UTC'
+    ];
+    
+    const selects = ['eventTimezone', 'driverTimezone'];
+    
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        timezones.forEach(tz => {
+            const option = document.createElement('option');
+            option.value = tz;
+            option.textContent = tz;
+            select.appendChild(option);
+        });
+    });
+}
+
+async function handleEventSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const eventData = Object.fromEntries(formData);
+    
+    // Get all form fields
+    eventData.event = document.getElementById('eventName').value;
+    eventData.event_date = document.getElementById('eventDate').value;
+    eventData.event_time = document.getElementById('eventTime').value;
+    eventData.event_timezone = document.getElementById('eventTimezone').value;
+    eventData.car = document.getElementById('car').value;
+    eventData.team = document.getElementById('team').value;
+    eventData.track = document.getElementById('track').value;
+    eventData.current_position = document.getElementById('currentPosition').value;
+    eventData.event_duration = document.getElementById('eventDuration').value;
+    eventData.total_drivers = document.getElementById('totalDrivers').value;
+    eventData.theoretical_stint_time = document.getElementById('theoreticalStintTime').value;
+    
+    try {
+        const response = await fetch('/api/event', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eventData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('Event settings saved successfully!', 'success');
+        } else {
+            showAlert('Error saving event settings', 'danger');
+        }
+    } catch (error) {
+        console.error('Error saving event:', error);
+        showAlert('Error saving event settings', 'danger');
+    }
+}
+
+async function handleAddDriver(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('driverName').value.trim();
+    const timezone = document.getElementById('driverTimezone').value;
+    
+    if (!name) {
+        showAlert('Please enter a driver name', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/drivers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'add',
+                name: name,
+                timezone: timezone
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(`Driver ${name} added successfully!`, 'success');
+            document.getElementById('addDriverForm').reset();
+            location.reload(); // Refresh to show new driver
+        } else {
+            showAlert('Error adding driver', 'danger');
+        }
+    } catch (error) {
+        console.error('Error adding driver:', error);
+        showAlert('Error adding driver', 'danger');
+    }
+}
+
+async function removeDriver(name) {
+    if (!confirm(`Are you sure you want to remove ${name}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/drivers', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(`Driver ${name} removed successfully!`, 'success');
+            location.reload(); // Refresh to remove driver from list
+        } else {
+            showAlert('Error removing driver', 'danger');
+        }
+    } catch (error) {
+        console.error('Error removing driver:', error);
+        showAlert('Error removing driver', 'danger');
+    }
+}
+
+function openAvailabilityModal() {
+    const modal = new bootstrap.Modal(document.getElementById('availabilityModal'));
+    modal.show();
+    
+    // Load availability content
+    document.getElementById('availabilityContent').innerHTML = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Driver availability management will be implemented in the planning section.
+            <br>
+            <a href="/planning" class="btn btn-sm btn-outline-primary mt-2">
+                Go to Planning <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

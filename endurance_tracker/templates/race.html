@@ -1,0 +1,638 @@
+{% extends "base.html" %}
+
+{% block title %}Live Race - EnduranceTracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-flag-fill text-danger"></i> Live Race Tracking
+            </h1>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge badge-lg" id="raceStatus">
+                    <i class="bi bi-circle-fill"></i> Waiting to Start
+                </span>
+                <button type="button" class="btn btn-success" id="startRaceBtn">
+                    <i class="bi bi-play-fill"></i> Start Race
+                </button>
+                <button type="button" class="btn btn-danger" id="stopRaceBtn" style="display: none;">
+                    <i class="bi bi-stop-fill"></i> Stop Race
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Current Status -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i> Current Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h2 class="text-primary mb-0" id="currentLap">0</h2>
+                            <small class="text-muted">Current Lap</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h2 class="text-success mb-0" id="raceTime">00:00:00</h2>
+                            <small class="text-muted">Race Time</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <h2 class="text-info mb-0" id="currentDriver">-</h2>
+                            <small class="text-muted">Current Driver</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h4 class="text-warning mb-0" id="lastLapTime">--:--:--</h4>
+                                <small class="text-muted">Last Lap Time</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h4 class="text-info mb-0" id="bestLapTime">--:--:--</h4>
+                                <small class="text-muted">Best Lap Time</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lap Times Table -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-table"></i> Lap Times
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Lap</th>
+                                <th>Driver</th>
+                                <th>Lap Time</th>
+                                <th>Total Time</th>
+                                <th>Gap</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lapTimesTable">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No lap times recorded yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls & Info -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning-charge"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" id="recordLapBtn">
+                        <i class="bi bi-plus-circle"></i> Record Lap
+                    </button>
+                    <button type="button" class="btn btn-warning" id="driverChangeBtn">
+                        <i class="bi bi-arrow-left-right"></i> Driver Change
+                    </button>
+                    <button type="button" class="btn btn-info" id="pitStopBtn">
+                        <i class="bi bi-wrench"></i> Pit Stop
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="incidentBtn">
+                        <i class="bi bi-exclamation-triangle"></i> Incident
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Driver Schedule -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar3"></i> Driver Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="driverSchedule">
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-calendar-x"></i>
+                        <p class="mt-2">No schedule loaded</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Weather & Conditions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cloud-sun"></i> Conditions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="weatherCondition" class="form-label">Weather</label>
+                    <select class="form-select" id="weatherCondition">
+                        <option value="clear">Clear</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="light_rain">Light Rain</option>
+                        <option value="heavy_rain">Heavy Rain</option>
+                        <option value="fog">Fog</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="trackCondition" class="form-label">Track</label>
+                    <select class="form-select" id="trackCondition">
+                        <option value="dry">Dry</option>
+                        <option value="damp">Damp</option>
+                        <option value="wet">Wet</option>
+                        <option value="flooded">Flooded</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="temperature" class="form-label">Temperature (°C)</label>
+                    <input type="number" class="form-control" id="temperature" placeholder="25">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Lap Modal -->
+<div class="modal fade" id="recordLapModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Lap Time</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recordLapForm">
+                    <div class="mb-3">
+                        <label for="lapNumber" class="form-label">Lap Number</label>
+                        <input type="number" class="form-control" id="lapNumber" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lapDriver" class="form-label">Driver</label>
+                        <select class="form-select" id="lapDriver" required>
+                            <option value="">Select driver...</option>
+                            {% if drivers %}
+                                {% for driver in drivers %}
+                                <option value="{{ driver.name }}">{{ driver.name }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lapTimeInput" class="form-label">Lap Time (MM:SS.sss)</label>
+                        <input type="text" class="form-control" id="lapTimeInput" 
+                               placeholder="01:30.123" pattern="\d{1,2}:\d{2}\.\d{3}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lapNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="lapNotes" rows="3" 
+                                  placeholder="Optional notes about this lap..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveLapBtn">Record Lap</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Driver Change Modal -->
+<div class="modal fade" id="driverChangeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Driver Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="driverChangeForm">
+                    <div class="mb-3">
+                        <label for="outgoingDriver" class="form-label">Outgoing Driver</label>
+                        <select class="form-select" id="outgoingDriver" required>
+                            <option value="">Select driver...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="incomingDriver" class="form-label">Incoming Driver</label>
+                        <select class="form-select" id="incomingDriver" required>
+                            <option value="">Select driver...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="changeTime" class="form-label">Change Time</label>
+                        <input type="text" class="form-control" id="changeTime" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveDriverChangeBtn">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRaceInterface();
+    loadRaceData();
+});
+
+let raceData = {
+    isRunning: false,
+    startTime: null,
+    currentLap: 0,
+    currentDriver: null,
+    lapTimes: [],
+    bestLap: null,
+    lastLap: null
+};
+
+let raceTimer = null;
+
+function initializeRaceInterface() {
+    // Start/Stop race buttons
+    document.getElementById('startRaceBtn').addEventListener('click', startRace);
+    document.getElementById('stopRaceBtn').addEventListener('click', stopRace);
+    
+    // Quick action buttons
+    document.getElementById('recordLapBtn').addEventListener('click', showRecordLapModal);
+    document.getElementById('driverChangeBtn').addEventListener('click', showDriverChangeModal);
+    document.getElementById('pitStopBtn').addEventListener('click', recordPitStop);
+    document.getElementById('incidentBtn').addEventListener('click', recordIncident);
+    
+    // Modal save buttons
+    document.getElementById('saveLapBtn').addEventListener('click', saveLapTime);
+    document.getElementById('saveDriverChangeBtn').addEventListener('click', saveDriverChange);
+    
+    // Initialize modals
+    window.recordLapModal = new bootstrap.Modal(document.getElementById('recordLapModal'));
+    window.driverChangeModal = new bootstrap.Modal(document.getElementById('driverChangeModal'));
+    
+    // Update race timer display every second
+    setInterval(updateRaceTimer, 1000);
+}
+
+async function loadRaceData() {
+    try {
+        // Load current race state from API
+        const response = await ApiClient.get('/api/race');
+        if (response) {
+            raceData = { ...raceData, ...response };
+            updateRaceDisplay();
+        }
+        
+        // Load driver schedule
+        loadDriverSchedule();
+        
+    } catch (error) {
+        console.error('Error loading race data:', error);
+    }
+}
+
+async function loadDriverSchedule() {
+    try {
+        const response = await ApiClient.get('/api/tracker');
+        const schedule = response || [];
+        
+        const scheduleContainer = document.getElementById('driverSchedule');
+        
+        if (schedule.length === 0) {
+            scheduleContainer.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-calendar-x"></i>
+                    <p class="mt-2">No schedule available</p>
+                    <a href="/planning" class="btn btn-outline-primary btn-sm">Create Schedule</a>
+                </div>
+            `;
+            return;
+        }
+        
+        let scheduleHtml = '';
+        schedule.slice(0, 5).forEach((item, index) => {
+            const isActive = item.planned_driver === raceData.currentDriver;
+            scheduleHtml += `
+                <div class="d-flex justify-content-between align-items-center py-2 ${isActive ? 'bg-primary bg-opacity-10 rounded px-2' : ''}">
+                    <div>
+                        <strong>${item.planned_driver || 'TBD'}</strong>
+                        <small class="d-block text-muted">${item.time_slot || 'Time TBD'}</small>
+                    </div>
+                    ${isActive ? '<i class="bi bi-play-fill text-primary"></i>' : ''}
+                </div>
+            `;
+        });
+        
+        scheduleContainer.innerHTML = scheduleHtml;
+        
+    } catch (error) {
+        console.error('Error loading driver schedule:', error);
+    }
+}
+
+function startRace() {
+    raceData.isRunning = true;
+    raceData.startTime = new Date();
+    
+    document.getElementById('startRaceBtn').style.display = 'none';
+    document.getElementById('stopRaceBtn').style.display = 'inline-block';
+    document.getElementById('raceStatus').className = 'badge badge-lg bg-success';
+    document.getElementById('raceStatus').innerHTML = '<i class="bi bi-circle-fill"></i> Race Active';
+    
+    showAlert('Race started!', 'success');
+    saveRaceState();
+}
+
+function stopRace() {
+    if (confirm('Are you sure you want to stop the race?')) {
+        raceData.isRunning = false;
+        
+        document.getElementById('startRaceBtn').style.display = 'inline-block';
+        document.getElementById('stopRaceBtn').style.display = 'none';
+        document.getElementById('raceStatus').className = 'badge badge-lg bg-danger';
+        document.getElementById('raceStatus').innerHTML = '<i class="bi bi-circle-fill"></i> Race Stopped';
+        
+        showAlert('Race stopped', 'warning');
+        saveRaceState();
+    }
+}
+
+function updateRaceTimer() {
+    if (!raceData.isRunning || !raceData.startTime) return;
+    
+    const now = new Date();
+    const elapsed = Math.floor((now - new Date(raceData.startTime)) / 1000);
+    
+    document.getElementById('raceTime').textContent = formatTime(elapsed);
+}
+
+function showRecordLapModal() {
+    const nextLapNumber = raceData.currentLap + 1;
+    document.getElementById('lapNumber').value = nextLapNumber;
+    document.getElementById('lapDriver').value = raceData.currentDriver || '';
+    
+    recordLapModal.show();
+}
+
+function showDriverChangeModal() {
+    const currentTime = new Date().toLocaleTimeString();
+    document.getElementById('changeTime').value = currentTime;
+    
+    // Populate driver dropdowns
+    const outgoingSelect = document.getElementById('outgoingDriver');
+    const incomingSelect = document.getElementById('incomingDriver');
+    
+    // Set current driver as outgoing
+    outgoingSelect.value = raceData.currentDriver || '';
+    
+    driverChangeModal.show();
+}
+
+async function saveLapTime() {
+    const form = document.getElementById('recordLapForm');
+    const formData = new FormData(form);
+    
+    const lapData = {
+        lap_number: parseInt(document.getElementById('lapNumber').value),
+        driver: document.getElementById('lapDriver').value,
+        lap_time: document.getElementById('lapTimeInput').value,
+        notes: document.getElementById('lapNotes').value,
+        timestamp: new Date().toISOString()
+    };
+    
+    // Validate lap time format
+    if (!/^\d{1,2}:\d{2}\.\d{3}$/.test(lapData.lap_time)) {
+        showAlert('Please enter lap time in format MM:SS.sss', 'warning');
+        return;
+    }
+    
+    try {
+        await ApiClient.post('/api/race/laps', lapData);
+        
+        // Update local data
+        raceData.lapTimes.push(lapData);
+        raceData.currentLap = lapData.lap_number;
+        raceData.lastLap = lapData.lap_time;
+        
+        // Update best lap if applicable
+        if (!raceData.bestLap || convertLapTimeToSeconds(lapData.lap_time) < convertLapTimeToSeconds(raceData.bestLap)) {
+            raceData.bestLap = lapData.lap_time;
+        }
+        
+        updateRaceDisplay();
+        updateLapTimesTable();
+        
+        recordLapModal.hide();
+        form.reset();
+        
+        showAlert('Lap recorded successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error recording lap:', error);
+        showAlert('Error recording lap', 'danger');
+    }
+}
+
+async function saveDriverChange() {
+    const outgoingDriver = document.getElementById('outgoingDriver').value;
+    const incomingDriver = document.getElementById('incomingDriver').value;
+    
+    if (!outgoingDriver || !incomingDriver) {
+        showAlert('Please select both drivers', 'warning');
+        return;
+    }
+    
+    if (outgoingDriver === incomingDriver) {
+        showAlert('Outgoing and incoming drivers must be different', 'warning');
+        return;
+    }
+    
+    const changeData = {
+        outgoing_driver: outgoingDriver,
+        incoming_driver: incomingDriver,
+        change_time: new Date().toISOString()
+    };
+    
+    try {
+        await ApiClient.post('/api/race/driver-change', changeData);
+        
+        raceData.currentDriver = incomingDriver;
+        updateRaceDisplay();
+        loadDriverSchedule();
+        
+        driverChangeModal.hide();
+        showAlert(`Driver change: ${outgoingDriver} → ${incomingDriver}`, 'success');
+        
+    } catch (error) {
+        console.error('Error recording driver change:', error);
+        showAlert('Error recording driver change', 'danger');
+    }
+}
+
+function recordPitStop() {
+    // Simple pit stop recording
+    const pitData = {
+        type: 'pit_stop',
+        driver: raceData.currentDriver,
+        timestamp: new Date().toISOString(),
+        notes: 'Pit stop'
+    };
+    
+    ApiClient.post('/api/race/events', pitData)
+        .then(() => showAlert('Pit stop recorded', 'info'))
+        .catch(error => {
+            console.error('Error recording pit stop:', error);
+            showAlert('Error recording pit stop', 'danger');
+        });
+}
+
+function recordIncident() {
+    const notes = prompt('Describe the incident:');
+    if (!notes) return;
+    
+    const incidentData = {
+        type: 'incident',
+        driver: raceData.currentDriver,
+        timestamp: new Date().toISOString(),
+        notes: notes
+    };
+    
+    ApiClient.post('/api/race/events', incidentData)
+        .then(() => showAlert('Incident recorded', 'warning'))
+        .catch(error => {
+            console.error('Error recording incident:', error);
+            showAlert('Error recording incident', 'danger');
+        });
+}
+
+function updateRaceDisplay() {
+    document.getElementById('currentLap').textContent = raceData.currentLap || 0;
+    document.getElementById('currentDriver').textContent = raceData.currentDriver || '-';
+    document.getElementById('lastLapTime').textContent = raceData.lastLap || '--:--:--';
+    document.getElementById('bestLapTime').textContent = raceData.bestLap || '--:--:--';
+}
+
+function updateLapTimesTable() {
+    const tbody = document.getElementById('lapTimesTable');
+    
+    if (raceData.lapTimes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No lap times recorded yet</td></tr>';
+        return;
+    }
+    
+    // Show last 10 laps
+    const recentLaps = raceData.lapTimes.slice(-10).reverse();
+    let html = '';
+    
+    recentLaps.forEach((lap, index) => {
+        const totalTime = calculateTotalTime(lap.lap_number);
+        const gap = index === 0 ? '-' : calculateGap(lap, recentLaps[0]);
+        
+        html += `
+            <tr>
+                <td>${lap.lap_number}</td>
+                <td>${lap.driver}</td>
+                <td>${lap.lap_time}</td>
+                <td>${totalTime}</td>
+                <td>${gap}</td>
+                <td>${lap.notes || '-'}</td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function calculateTotalTime(lapNumber) {
+    // Simplified calculation - in reality this would sum all lap times
+    if (!raceData.startTime) return '--:--:--';
+    
+    const elapsed = Math.floor((new Date() - new Date(raceData.startTime)) / 1000);
+    return formatTime(elapsed);
+}
+
+function calculateGap(lap1, lap2) {
+    // Simplified gap calculation
+    const time1 = convertLapTimeToSeconds(lap1.lap_time);
+    const time2 = convertLapTimeToSeconds(lap2.lap_time);
+    const gap = Math.abs(time1 - time2);
+    
+    if (gap < 60) {
+        return `+${gap.toFixed(3)}s`;
+    } else {
+        const minutes = Math.floor(gap / 60);
+        const seconds = gap % 60;
+        return `+${minutes}:${seconds.toFixed(3)}`;
+    }
+}
+
+function convertLapTimeToSeconds(lapTime) {
+    const parts = lapTime.split(':');
+    if (parts.length !== 2) return 0;
+    
+    const minutes = parseInt(parts[0]);
+    const seconds = parseFloat(parts[1]);
+    
+    return minutes * 60 + seconds;
+}
+
+async function saveRaceState() {
+    try {
+        await ApiClient.post('/api/race', {
+            isRunning: raceData.isRunning,
+            startTime: raceData.startTime,
+            currentLap: raceData.currentLap,
+            currentDriver: raceData.currentDriver
+        });
+    } catch (error) {
+        console.error('Error saving race state:', error);
+    }
+}
+
+// Format seconds to HH:MM:SS
+function formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+</script>
+{% endblock %}

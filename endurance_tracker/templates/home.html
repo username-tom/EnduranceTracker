@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Connection - EnduranceTracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-wifi"></i> Connection Management
+        </h1>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Internet Mode Configuration -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-globe"></i> Internet Mode
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="internetModeForm">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="useInternet" 
+                                   {% if use_internet %}checked{% endif %}>
+                            <label class="form-check-label" for="useInternet">
+                                Enable Internet Mode
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            Use MongoDB and HTTP communication for global teams
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mode</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="serverMode" 
+                                   id="serverMode" value="true" {% if is_server %}checked{% endif %}>
+                            <label class="form-check-label" for="serverMode">
+                                Server (Host data)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="serverMode" 
+                                   id="clientMode" value="false" {% if not is_server %}checked{% endif %}>
+                            <label class="form-check-label" for="clientMode">
+                                Client (Connect to server)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-8">
+                            <label for="serverHost" class="form-label">Server Address</label>
+                            <input type="text" class="form-control" id="serverHost" 
+                                   value="{{ server_host }}" placeholder="0.0.0.0 or IP address">
+                        </div>
+                        <div class="col-4">
+                            <label for="serverPort" class="form-label">Port</label>
+                            <input type="number" class="form-control" id="serverPort" 
+                                   value="{{ server_port }}" placeholder="8080">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="passcode" class="form-label">Passcode</label>
+                        <input type="password" class="form-control" id="passcode" 
+                               placeholder="Enter shared passcode">
+                        <div class="form-text">
+                            All team members must use the same passcode
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div id="internetStatus" class="badge bg-secondary">
+                            <i class="bi bi-circle-fill"></i> Disconnected
+                        </div>
+                        <button type="button" id="connectBtn" class="btn btn-primary">
+                            <i class="bi bi-link-45deg"></i> Connect
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legacy Network Mode -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-router"></i> Legacy Network Mode
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Local network communication using sockets (original functionality)
+                </p>
+
+                <form id="legacyModeForm">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="legacyServer">
+                            <label class="form-check-label" for="legacyServer">
+                                Enable Server Mode
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-8">
+                            <label for="legacyHost" class="form-label">Host</label>
+                            <input type="text" class="form-control" id="legacyHost" 
+                                   value="127.0.0.1" placeholder="127.0.0.1">
+                        </div>
+                        <div class="col-4">
+                            <label for="legacyPort" class="form-label">Port</label>
+                            <input type="number" class="form-control" id="legacyPort" 
+                                   value="65432" placeholder="65432">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sendMessage" class="form-label">Send Message</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="sendMessage" 
+                                   placeholder="Type message...">
+                            <button class="btn btn-outline-secondary" type="button" id="sendBtn">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-success" id="startServerBtn">
+                            <i class="bi bi-play-fill"></i> Start Server
+                        </button>
+                        <button type="button" class="btn btn-danger" id="stopServerBtn">
+                            <i class="bi bi-stop-fill"></i> Stop Server
+                        </button>
+                        <button type="button" class="btn btn-info" id="startClientBtn">
+                            <i class="bi bi-link"></i> Connect Client
+                        </button>
+                        <button type="button" class="btn btn-warning" id="stopClientBtn">
+                            <i class="bi bi-x-circle"></i> Disconnect
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Log -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-ul"></i> Connection Log
+                </h5>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="clearLogBtn">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="connectionLog" class="border rounded p-3 bg-light" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.875rem;">
+                    <div class="text-muted">Connection events will appear here...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const connectBtn = document.getElementById('connectBtn');
+    const internetStatus = document.getElementById('internetStatus');
+    const connectionLog = document.getElementById('connectionLog');
+    
+    // Internet mode connection
+    connectBtn.addEventListener('click', async function() {
+        const isServer = document.getElementById('serverMode').checked;
+        const host = document.getElementById('serverHost').value;
+        const port = parseInt(document.getElementById('serverPort').value);
+        const passcode = document.getElementById('passcode').value;
+        
+        if (!passcode) {
+            showAlert('Please enter a passcode', 'warning');
+            return;
+        }
+        
+        try {
+            const action = internetStatus.textContent.includes('Disconnected') ? 'connect' : 'disconnect';
+            
+            const response = await fetch('/api/connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    is_server: isServer,
+                    host: host,
+                    port: port,
+                    passcode: passcode
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                if (action === 'connect') {
+                    internetStatus.className = 'badge bg-success';
+                    internetStatus.innerHTML = '<i class="bi bi-circle-fill"></i> Connected';
+                    connectBtn.innerHTML = '<i class="bi bi-x-circle"></i> Disconnect';
+                    connectBtn.className = 'btn btn-danger';
+                } else {
+                    internetStatus.className = 'badge bg-secondary';
+                    internetStatus.innerHTML = '<i class="bi bi-circle-fill"></i> Disconnected';
+                    connectBtn.innerHTML = '<i class="bi bi-link-45deg"></i> Connect';
+                    connectBtn.className = 'btn btn-primary';
+                }
+                
+                logMessage(result.status, 'success');
+                showAlert(result.status, 'success');
+            } else {
+                logMessage('Error: ' + result.error, 'error');
+                showAlert(result.error, 'danger');
+            }
+        } catch (error) {
+            logMessage('Connection error: ' + error.message, 'error');
+            showAlert('Connection error: ' + error.message, 'danger');
+        }
+    });
+    
+    // Clear log
+    document.getElementById('clearLogBtn').addEventListener('click', function() {
+        connectionLog.innerHTML = '<div class="text-muted">Connection events will appear here...</div>';
+    });
+    
+    // Legacy mode buttons (placeholder functionality)
+    document.getElementById('startServerBtn').addEventListener('click', () => {
+        logMessage('Legacy server started', 'info');
+    });
+    
+    document.getElementById('stopServerBtn').addEventListener('click', () => {
+        logMessage('Legacy server stopped', 'info');
+    });
+    
+    document.getElementById('startClientBtn').addEventListener('click', () => {
+        logMessage('Legacy client connected', 'info');
+    });
+    
+    document.getElementById('stopClientBtn').addEventListener('click', () => {
+        logMessage('Legacy client disconnected', 'info');
+    });
+    
+    // Send message
+    document.getElementById('sendBtn').addEventListener('click', function() {
+        const message = document.getElementById('sendMessage').value;
+        if (message.trim()) {
+            logMessage('Sent: ' + message, 'info');
+            document.getElementById('sendMessage').value = '';
+        }
+    });
+    
+    // Enter key for send message
+    document.getElementById('sendMessage').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('sendBtn').click();
+        }
+    });
+});
+
+function logMessage(message, type = 'info') {
+    const log = document.getElementById('connectionLog');
+    const timestamp = new Date().toLocaleTimeString();
+    const colorClass = type === 'error' ? 'text-danger' : type === 'success' ? 'text-success' : 'text-info';
+    
+    // Remove placeholder text if it exists
+    if (log.querySelector('.text-muted')) {
+        log.innerHTML = '';
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = colorClass;
+    messageDiv.innerHTML = `[${timestamp}] ${message}`;
+    
+    log.appendChild(messageDiv);
+    log.scrollTop = log.scrollHeight;
+}
+</script>
+{% endblock %}

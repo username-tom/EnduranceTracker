@@ -1,8 +1,11 @@
 """EnduranceTracker main application module.
 
 Contains all Tkinter UI logic, globals, and the main() entry point.
+This module now supports both Tkinter (desktop) and web-based interfaces.
 """
 
+import sys
+import os
 from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
 from customtkinter import CTkOptionMenu
@@ -31,6 +34,21 @@ from .config import (
 from .db import Database, MongoDatabase
 from .helpers import TrackerClient, TrackerServer, InternetTrackerClient, InternetTrackerServer, tz_diff, format_timedelta
 from .core import TimeScheduler, DatePicker
+
+# Check if running in web mode
+WEB_MODE = '--web' in sys.argv or os.environ.get('ENDURANCE_TRACKER_WEB', '').lower() == 'true'
+
+if WEB_MODE:
+    # Import web application
+    try:
+        from .web_app import start_web_server, stop_web_server
+        print("Starting EnduranceTracker in web mode...")
+    except ImportError as e:
+        print(f"Error importing web modules: {e}")
+        print("Please install Flask: pip install flask")
+        sys.exit(1)
+else:
+    # Tkinter mode - all the existing code below
 
 # ─────────────────────────────────────────── module-level globals ─────────────
 
@@ -234,6 +252,52 @@ def _tracker_row_to_db_slot(row_idx: int) -> dict:
 # ─────────────────────────────────────────── main / loading ───────────────────
 
 def main():
+    """Main entry point - supports both web and Tkinter modes."""
+    if WEB_MODE:
+        try:
+            # Start web server
+            import signal
+            
+            def signal_handler(sig, frame):
+                print("\nShutting down EnduranceTracker web server...")
+                stop_web_server()
+                sys.exit(0)
+            
+            signal.signal(signal.SIGINT, signal_handler)
+            
+            # Parse command line arguments for host and port
+            host = '127.0.0.1'
+            port = 5000
+            open_browser = True
+            
+            for i, arg in enumerate(sys.argv):
+                if arg == '--host' and i + 1 < len(sys.argv):
+                    host = sys.argv[i + 1]
+                elif arg == '--port' and i + 1 < len(sys.argv):
+                    port = int(sys.argv[i + 1])
+                elif arg == '--no-browser':
+                    open_browser = False
+            
+            # Start the web server
+            server = start_web_server(host=host, port=port, open_browser=open_browser)
+            
+            # Keep the main thread alive
+            try:
+                while True:
+                    sleep(1)
+            except KeyboardInterrupt:
+                print("\nShutting down...")
+                stop_web_server()
+                
+        except Exception as e:
+            print(f"Error starting web server: {e}")
+            sys.exit(1)
+    else:
+        # Original Tkinter mode
+        main_tkinter()
+
+def main_tkinter():
+    """Original Tkinter-based main function."""
     global root, settings, variables, elements
 
     root = Tk()
@@ -484,58 +548,132 @@ def load_tab_home():
     tab_home = elements['tab_home']
     tab_home.grid_columnconfigure(0, weight=3)
     tab_home.grid_columnconfigure(1, weight=1)
+    for i in range(15):  # Increased to accommodate internet settings
+        tab_home.grid_rowconfigure(i, weight=1)
 
-    Label(tab_home, text='Server', bg=CONTENT_BG,
-          font=("Helvetica", 10, 'bold')).grid(row=0, column=0, sticky="nsew")
+    bg = CONTENT_BG
 
+    # Internet Mode Configuration Section
+    Label(tab_home, text='Internet Mode', bg=bg,
+          font=("Helvetica", 12, 'bold')).grid(row=0, column=0, columnspan=2, sticky="nsew")
+    
+    # Internet mode toggle
+    internet_frame = Frame(tab_home, bg=bg)
+    internet_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=2)
+    internet_frame.grid_columnconfigure((0, 1, 2), weight=1)
+    
+    variables['use_internet'] = IntVar(value=1 if USE_INTERNET else 0)
+    Checkbutton(internet_frame, text="Enable Internet Mode", 
+                variable=variables['use_internet'], bg=bg,
+                command=toggle_internet_mode).grid(row=0, column=0, sticky="w")
+    
+    # Connection status
+    variables['connection_status'] = StringVar(value='Disconnected')
+    Label(internet_frame, textvariable=variables['connection_status'], 
+          bg=bg, fg='red').grid(row=0, column=1, sticky="w", padx=10)
+    
+    # Connect/Disconnect button
+    Button(internet_frame, text="Connect", 
+           command=toggle_connection).grid(row=0, column=2, sticky="e")
+
+    # Server/Client mode selection
+    Label(tab_home, text='Mode', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=2, column=0, sticky="nsew")
+    
     variables['is_server'] = BooleanVar(value=IS_SERVER)
-    Checkbutton(tab_home, variable=variables['is_server'],
-                bg=CONTENT_BG, selectcolor=CONTENT_BG,
-                command=toggle_server).grid(row=0, column=1, sticky="nsew")
+    server_frame = Frame(tab_home, bg=bg)
+    server_frame.grid(row=2, column=1, sticky="nsew", pady=2)
+    
+    Radiobutton(server_frame, text="Server", variable=variables['is_server'], 
+                value=True, bg=bg, command=update_server_mode).pack(side=LEFT)
+    Radiobutton(server_frame, text="Client", variable=variables['is_server'], 
+                value=False, bg=bg, command=update_server_mode).pack(side=LEFT)
 
+    # Connection settings
+    Label(tab_home, text='Server Address', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=3, column=0, sticky="nsew")
+    
+    conn_frame = Frame(tab_home, bg=bg)
+    conn_frame.grid(row=3, column=1, sticky="nsew", pady=2)
+    conn_frame.grid_columnconfigure((0, 2), weight=1)
+    
+    variables['server_host'] = StringVar(value=SERVER_HOST)
+    Entry(conn_frame, textvariable=variables['server_host'], 
+          justify='center').grid(row=0, column=0, sticky="ew", padx=(0, 5))
+    
+    Label(conn_frame, text=':', bg=bg).grid(row=0, column=1)
+    
+    variables['server_port'] = StringVar(value=str(SERVER_PORT))
+    Entry(conn_frame, textvariable=variables['server_port'], 
+          justify='center', width=8).grid(row=0, column=2, sticky="w", padx=(5, 0))
+
+    # Passcode
+    Label(tab_home, text='Passcode', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=4, column=0, sticky="nsew")
+    
+    variables['passcode'] = StringVar(value=PASSCODE)
+    Entry(tab_home, textvariable=variables['passcode'], 
+          justify='center', show='*').grid(row=4, column=1, sticky="nsew", pady=2)
+
+    # Legacy Network Mode Section (for local networks)
+    Label(tab_home, text='', bg=bg).grid(row=5, column=0, columnspan=2)  # Spacer
+    
+    Label(tab_home, text='Legacy Network Mode', bg=bg,
+          font=("Helvetica", 12, 'bold')).grid(row=6, column=0, columnspan=2, sticky="nsew")
+
+    # Legacy server checkbox (kept for compatibility)
+    Label(tab_home, text='Server', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=7, column=0, sticky="nsew")
+    Checkbutton(tab_home, variable=variables['is_server'],
+                bg=bg, selectcolor=bg,
+                command=toggle_server).grid(row=7, column=1, sticky="nsew")
+
+    # Legacy server/client buttons
     btn = Button(tab_home, text='Start Server', command=lambda: server.start(),
                  bg=BUTTON_BG, fg=BUTTON_FG)
-    btn.grid(row=1, column=0, sticky="nsew", pady=2)
+    btn.grid(row=8, column=0, sticky="nsew", pady=2)
     elements['button_start_server'] = btn
 
     btn = Button(tab_home, text='Stop Server', command=lambda: server.stop(),
                  bg=BUTTON_BG, fg=BUTTON_FG)
-    btn.grid(row=1, column=1, sticky="nsew", pady=2)
+    btn.grid(row=8, column=1, sticky="nsew", pady=2)
     elements['button_stop_server'] = btn
 
     btn = Button(tab_home, text='Start Client', command=lambda: client.connect(),
                  bg=BUTTON_BG, fg=BUTTON_FG)
-    btn.grid(row=2, column=0, sticky="nsew", pady=2)
+    btn.grid(row=9, column=0, sticky="nsew", pady=2)
     elements['button_start_client'] = btn
 
     btn = Button(tab_home, text='Stop Client', command=lambda: client.disconnect(),
                  bg=BUTTON_BG, fg=BUTTON_FG)
-    btn.grid(row=2, column=1, sticky="nsew", pady=2)
+    btn.grid(row=9, column=1, sticky="nsew", pady=2)
     elements['button_stop_client'] = btn
 
-    Label(tab_home, text='Host', bg=CONTENT_BG,
-          font=("Helvetica", 10, 'bold')).grid(row=3, column=0, sticky="nsew")
+    # Legacy host/port settings
+    Label(tab_home, text='Host', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=10, column=0, sticky="nsew")
     variables['host'] = StringVar(value=HOST)
     Entry(tab_home, textvariable=variables['host'],
-          justify='center', insertbackground='black').grid(row=3, column=1,
+          justify='center', insertbackground='black').grid(row=10, column=1,
                                                            sticky="nsew", pady=2)
 
-    Label(tab_home, text='Port', bg=CONTENT_BG,
-          font=("Helvetica", 10, 'bold')).grid(row=4, column=0, sticky="nsew")
+    Label(tab_home, text='Port', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=11, column=0, sticky="nsew")
     variables['port'] = IntVar(value=PORT)
     Entry(tab_home, textvariable=variables['port'],
-          justify='center', insertbackground='black').grid(row=4, column=1,
+          justify='center', insertbackground='black').grid(row=11, column=1,
                                                            sticky="nsew", pady=2)
 
-    Label(tab_home, text='Send', bg=CONTENT_BG,
-          font=("Helvetica", 10, 'bold')).grid(row=5, column=0, sticky="nsew")
+    # Legacy send message
+    Label(tab_home, text='Send', bg=bg,
+          font=("Helvetica", 10, 'bold')).grid(row=12, column=0, sticky="nsew")
     variables['send'] = StringVar(value='')
     entry_send = Entry(tab_home, textvariable=variables['send'],
                        justify='center', insertbackground='black')
-    entry_send.grid(row=5, column=1, sticky="nsew", pady=2)
+    entry_send.grid(row=12, column=1, sticky="nsew", pady=2)
     entry_send.bind('<Return>', send_message)
     Button(tab_home, text='Send', command=send_message,
-           bg=BUTTON_BG, fg=BUTTON_FG).grid(row=5, column=2, sticky="nsew",
+           bg=BUTTON_BG, fg=BUTTON_FG).grid(row=12, column=2, sticky="nsew",
                                              pady=2)
 
 
@@ -576,7 +714,7 @@ def load_tab_general():
     tab_general = elements['tab_general']
     tab_general.grid_columnconfigure(1, weight=1)
     tab_general.grid_columnconfigure(2, weight=2)
-    for i in range(25):  # Increased range to accommodate new internet settings
+    for i in range(20):  # Reduced from 25 since internet settings moved
         tab_general.grid_rowconfigure(i, weight=1)
     bg = CONTENT_BG
 
@@ -670,68 +808,6 @@ def load_tab_general():
     _make_time_row(tab_general, 14, 'Theoretical Stint Time',
                    'theoretical_stint_time', bg)
     _make_time_row(tab_general, 15, 'Average Stint Time', 'average_stint_time', bg)
-
-    # Internet mode configuration
-    Label(tab_general, text='Internet Mode', bg=bg,
-          font=("Helvetica", 10, 'bold')).grid(row=16, column=0, sticky="nsew")
-    
-    # Internet mode toggle
-    internet_frame = Frame(tab_general, bg=bg)
-    internet_frame.grid(row=16, column=1, sticky="nsew", pady=2)
-    internet_frame.grid_columnconfigure((0, 1, 2), weight=1)
-    
-    variables['use_internet'] = IntVar(value=1 if USE_INTERNET else 0)
-    Checkbutton(internet_frame, text="Enable Internet Mode", 
-                variable=variables['use_internet'], bg=bg,
-                command=toggle_internet_mode).grid(row=0, column=0, sticky="w")
-    
-    # Connection status
-    variables['connection_status'] = StringVar(value='Disconnected')
-    Label(internet_frame, textvariable=variables['connection_status'], 
-          bg=bg, fg='red').grid(row=0, column=1, sticky="w", padx=10)
-    
-    # Connect/Disconnect button
-    Button(internet_frame, text="Connect", 
-           command=toggle_connection).grid(row=0, column=2, sticky="e")
-
-    # Server/Client mode selection (row 17)
-    Label(tab_general, text='Mode', bg=bg,
-          font=("Helvetica", 10, 'bold')).grid(row=17, column=0, sticky="nsew")
-    
-    mode_frame = Frame(tab_general, bg=bg)
-    mode_frame.grid(row=17, column=1, sticky="nsew", pady=2)
-    
-    variables['is_server'] = IntVar(value=1 if IS_SERVER else 0)
-    Radiobutton(mode_frame, text="Server", variable=variables['is_server'], 
-                value=1, bg=bg, command=update_server_mode).pack(side=LEFT)
-    Radiobutton(mode_frame, text="Client", variable=variables['is_server'], 
-                value=0, bg=bg, command=update_server_mode).pack(side=LEFT)
-
-    # Connection settings (row 18)
-    Label(tab_general, text='Server Address', bg=bg,
-          font=("Helvetica", 10, 'bold')).grid(row=18, column=0, sticky="nsew")
-    
-    conn_frame = Frame(tab_general, bg=bg)
-    conn_frame.grid(row=18, column=1, sticky="nsew", pady=2)
-    conn_frame.grid_columnconfigure((0, 2), weight=1)
-    
-    variables['server_host'] = StringVar(value=SERVER_HOST)
-    Entry(conn_frame, textvariable=variables['server_host'], 
-          justify='center').grid(row=0, column=0, sticky="ew", padx=(0, 5))
-    
-    Label(conn_frame, text=':', bg=bg).grid(row=0, column=1)
-    
-    variables['server_port'] = StringVar(value=str(SERVER_PORT))
-    Entry(conn_frame, textvariable=variables['server_port'], 
-          justify='center', width=8).grid(row=0, column=2, sticky="w", padx=(5, 0))
-
-    # Passcode (row 19)
-    Label(tab_general, text='Passcode', bg=bg,
-          font=("Helvetica", 10, 'bold')).grid(row=19, column=0, sticky="nsew")
-    
-    variables['passcode'] = StringVar(value=PASSCODE)
-    Entry(tab_general, textvariable=variables['passcode'], 
-          justify='center', show='*').grid(row=19, column=1, sticky="nsew", pady=2)
 
     # Hidden variable for event_time_est used by status updater
     variables['event_time_est'] = StringVar(value='')
@@ -1207,7 +1283,7 @@ def toggle_internet_mode():
 def update_server_mode():
     """Update server/client mode setting."""
     is_server = variables['is_server'].get()
-    set_config('general', 'server', str(is_server == 1).lower())
+    set_config('general', 'server', str(is_server).lower())
     
     messagebox.showinfo("Server Mode", 
                        "Server mode setting saved. Please restart the application for changes to take effect.")
